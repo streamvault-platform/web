@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "npm"
@@ -54,10 +54,26 @@ jobs:
 
       - run: npm run lint
 
+  # ── Unit & component tests ────────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm test
+
   # ── Build & push Docker image (web / nginx) to GHCR ─────────────────────
   docker:
     name: Build & push image
-    needs: [build, lint]
+    needs: [build, lint, test]
     if: >
       github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/release'
       || github.ref_type == 'tag'
