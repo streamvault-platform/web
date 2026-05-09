@@ -1,0 +1,128 @@
+name: CI / CD
+
+on:
+  pull_request:
+  push:
+    branches: [develop, release]
+    tags: ["v*"]
+
+jobs:
+  # ── Export web build & extract version (fail fast) ───────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "app_version=${APP_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Export web build
+        run: npx expo export --platform web
+        env:
+          CI: "1"
+          EXPO_NO_TELEMETRY: "1"
+
+  # ── Lint ─────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run lint
+
+  # ── Build & push Docker image (web / nginx) to GHCR ─────────────────────
+  docker:
+    name: Build & push image
+    needs: [build, lint]
+    if: >
+      github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/release'
+      || github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compute image tag
+        id: tag
+        run: |
+          VERSION="${{ needs.build.outputs.app_version }}"
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "image_tag=${VERSION}-dev" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/release" ]]; then
+            echo "image_tag=${VERSION}-rc.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          else
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+            if [ "${TAG_VERSION}" != "${VERSION}" ]; then
+              echo "Tag (${TAG_VERSION}) does not match package.json version (${VERSION})" >&2
+              exit 1
+            fi
+            echo "image_tag=${VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/streamvault-web:${{ steps.tag.outputs.image_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── EAS Build — iOS & Android ────────────────────────────────────────────
+  # Requires: EXPO_TOKEN secret, eas.json configured, EAS project linked.
+  # Uncomment when ready to set up EAS Build.
+  #
+  # eas:
+  #   name: EAS Build
+  #   needs: [build, lint]
+  #   if: github.ref_type == 'tag'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "22"
+  #         cache: "npm"
+  #     - run: npm ci
+  #     - uses: expo/expo-github-action@v8
+  #       with:
+  #         expo-version: latest
+  #         eas-version: latest
+  #         token: ${{ secrets.EXPO_TOKEN }}
+  #     - run: eas build --platform all --non-interactive --no-wait
