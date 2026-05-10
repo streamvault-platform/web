@@ -54,6 +54,44 @@ lib/
 - Components are presentational. Business logic in hooks and stores.
 - Every screen has a loading state, error state, and empty state.
 
+## Testing
+
+Test runner: **Vitest** (`npm test`). Infrastructure is already configured — do not add Jest.
+
+### Rules — always write tests alongside new code
+
+| What you add | What you must write |
+|---|---|
+| Utility function in `lib/utils/` | Unit test in `lib/utils/<name>.test.ts` |
+| API function in `lib/api/` | URL/param construction test in `lib/api/<name>.test.ts` |
+| Custom hook in `lib/hooks/` | Hook test using `renderHook` + `createQueryWrapper()` |
+| Component in `components/` | Render test + interaction test |
+| Zustand store | State transition tests (see `stores/settings.test.ts` as template) |
+
+### Environments
+- Default (`node`): stores, utils, hooks — no DOM needed
+- Components: add `// @vitest-environment jsdom` at top of the test file
+
+### Patterns
+
+**Mock API modules in hook/screen tests:**
+```ts
+vi.mock("@/lib/api/library");
+const mockedListArtists = vi.mocked(listArtists);
+mockedListArtists.mockResolvedValue([...]);
+```
+
+**React Query wrapper for `renderHook`:**
+```ts
+import { createQueryWrapper } from "@/test/utils";
+const { result } = renderHook(() => useArtists(), { wrapper: createQueryWrapper() });
+```
+
+**Component tests use `@testing-library/react` (not the RN variant) — `react-native-web` handles the aliasing.**
+
+### Coverage target
+`npm run test:coverage` — keep `lib/` and `components/` above **80%**.
+
 ## Do NOT
 - Eject from Expo managed workflow
 - Use StyleSheet.create for anything NativeWind can handle
