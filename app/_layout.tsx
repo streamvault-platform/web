@@ -24,7 +24,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadTokens().finally(() => setReady(true));
-  }, []);
+  }, [loadTokens]);
 
   // Show a blank screen in the correct background color while tokens load.
   // Avoids a flash of the wrong screen before the redirect fires.
