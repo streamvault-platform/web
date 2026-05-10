@@ -63,7 +63,7 @@ export default function SearchScreen() {
       {showEmpty && (
         <View className="flex-1 items-center justify-center">
           <Text className="text-foreground-muted dark:text-foreground-muted-dark">
-            No results for "{deferred}"
+            No results for &quot;{deferred}&quot;
           </Text>
         </View>
       )}
@@ -109,7 +109,7 @@ export default function SearchScreen() {
               );
             }
             const track = item as Track;
-            return <TrackRow track={track} onPress={() => {}} />;
+            return <TrackRow track={track} onPress={() => { }} />;
           }}
           ItemSeparatorComponent={() => (
             <View className="h-px mx-4 bg-border dark:bg-border-dark" />
