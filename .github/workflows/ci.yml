@@ -7,18 +7,18 @@ on:
     tags: ["v*"]
 
 jobs:
-  # ── Export web build & extract version (fail fast) ───────────────────────
+  # ── Typecheck & extract version ───────────────────────────────────────────
   build:
-    name: Build
+    name: Typecheck
     runs-on: ubuntu-latest
     outputs:
       app_version: ${{ steps.version.outputs.app_version }}
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci
@@ -32,12 +32,6 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Export web build
-        run: npx expo export --platform web
-        env:
-          CI: "1"
-          EXPO_NO_TELEMETRY: "1"
-
   # ── Lint ─────────────────────────────────────────────────────────────────
   lint:
     name: Lint
@@ -47,7 +41,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci
@@ -63,7 +57,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci
