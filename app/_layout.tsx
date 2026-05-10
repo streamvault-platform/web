@@ -9,6 +9,7 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/stores/auth";
+import { MiniPlayer } from "@/components/player/MiniPlayer";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
       </Stack>
       {!isAuthenticated && <Redirect href="/(auth)/setup" />}
+      {isAuthenticated && <MiniPlayer />}
       <StatusBar style={isDark ? "light" : "dark"} />
     </QueryClientProvider>
   );

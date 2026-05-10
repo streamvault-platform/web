@@ -15,6 +15,7 @@ import { ArtistRow } from "@/components/library/ArtistRow";
 import { TrackRow } from "@/components/library/TrackRow";
 import type { Album, Artist, Track } from "@/lib/api/library";
 import { useSearch } from "@/lib/hooks/library";
+import { usePlaybackStore } from "@/stores/playback";
 
 type AnyItem = Track | Album | Artist;
 type Section = { title: "Tracks" | "Albums" | "Artists"; data: AnyItem[] };
@@ -25,6 +26,7 @@ export default function SearchScreen() {
   const inputRef = useRef<TextInput>(null);
 
   const { artists, albums, tracks, isPending } = useSearch(deferred);
+  const { play } = usePlaybackStore();
 
   const sections: Section[] = [
     ...(tracks.length > 0 ? [{ title: "Tracks" as const, data: tracks as AnyItem[] }] : []),
@@ -109,7 +111,7 @@ export default function SearchScreen() {
               );
             }
             const track = item as Track;
-            return <TrackRow track={track} onPress={() => { }} />;
+            return <TrackRow track={track} onPress={() => play(track)} />;
           }}
           ItemSeparatorComponent={() => (
             <View className="h-px mx-4 bg-border dark:bg-border-dark" />

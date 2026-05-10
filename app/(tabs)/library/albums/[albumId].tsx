@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TrackRow } from "@/components/library/TrackRow";
 import { useAlbum, useTracks } from "@/lib/hooks/library";
+import { usePlaybackStore } from "@/stores/playback";
 
 export default function AlbumTracksScreen() {
   const { albumId, albumTitle } = useLocalSearchParams<{
@@ -13,6 +14,7 @@ export default function AlbumTracksScreen() {
 
   const { data: album } = useAlbum(albumId);
   const { data: tracks, isPending, isError } = useTracks(albumId);
+  const { play } = usePlaybackStore();
 
   const title = album?.title ?? albumTitle ?? "Tracks";
 
@@ -42,7 +44,7 @@ export default function AlbumTracksScreen() {
             ) : null
           }
           renderItem={({ item }) => (
-            <TrackRow track={item} onPress={() => {}} />
+            <TrackRow track={item} onPress={() => play(item)} />
           )}
           ItemSeparatorComponent={() => (
             <View className="h-px mx-4 bg-border dark:bg-border-dark" />
