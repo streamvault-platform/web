@@ -33,13 +33,17 @@ function clearHeartbeat(): void {
 }
 
 export const usePlaybackStore = create<PlaybackState>()((set, get) => {
-  audioPlayer.setOnStatusUpdate((positionMs, durationMs, didFinish) => {
-    set({ positionMs, durationMs });
-    if (didFinish) {
-      clearHeartbeat();
-      set({ isPlaying: false });
-    }
-  });
+  // On web, expo-av pushes status updates via callback.
+  // On native, PlaybackSync component syncs RNTP hook state into the store.
+  if (Platform.OS === "web") {
+    audioPlayer.setOnStatusUpdate((positionMs, durationMs, didFinish) => {
+      set({ positionMs, durationMs });
+      if (didFinish) {
+        clearHeartbeat();
+        set({ isPlaying: false });
+      }
+    });
+  }
 
   return {
     currentTrack: null,
@@ -51,15 +55,19 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => {
       const { serverUrl } = useSettingsStore.getState();
       const { accessToken } = useAuthStore.getState();
 
-      // HTMLAudio (web) does not support custom request headers — omit them and
-      // rely on the ?token= query-param workaround once core supports it.
       const isWeb = Platform.OS === "web";
       const headers: Record<string, string> =
         !isWeb && accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
       const tokenParam =
         isWeb && accessToken ? `?token=${encodeURIComponent(accessToken)}` : "";
       const url = `${serverUrl}/api/stream/${track.id}${tokenParam}`;
-      await audioPlayer.load(url, headers);
+
+      await audioPlayer.load(url, headers, {
+        id: track.id,
+        title: track.title,
+        artist: track.artistName,
+        album: track.albumTitle,
+      });
       await audioPlayer.play();
 
       set({ currentTrack: track, isPlaying: true, positionMs: 0 });

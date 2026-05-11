@@ -10,6 +10,8 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/stores/auth";
 import { MiniPlayer } from "@/components/player/MiniPlayer";
+import { PlaybackSync } from "@/components/player/PlaybackSync";
+import { setupAudioPlayer } from "@/lib/audio/setup";
 
 const queryClient = new QueryClient();
 
@@ -25,10 +27,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadTokens().finally(() => setReady(true));
+    setupAudioPlayer().catch(console.error);
   }, [loadTokens]);
 
-  // Show a blank screen in the correct background color while tokens load.
-  // Avoids a flash of the wrong screen before the redirect fires.
   if (!ready) {
     return (
       <View
@@ -39,9 +40,14 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <PlaybackSync />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="player"
+          options={{ presentation: "transparentModal", headerShown: false }}
+        />
       </Stack>
       {!isAuthenticated && <Redirect href="/(auth)/setup" />}
       {isAuthenticated && <MiniPlayer />}

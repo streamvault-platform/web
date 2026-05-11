@@ -1,19 +1,21 @@
-import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, usePathname } from "expo-router";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { SeekBar } from "@/components/player/SeekBar";
 import { usePlaybackStore } from "@/stores/playback";
 
 const TAB_BAR_HEIGHT = 49;
 
 export function MiniPlayer() {
   const { bottom } = useSafeAreaInsets();
+  const pathname = usePathname();
   const { currentTrack, isPlaying, positionMs, durationMs, pause, resume, seek } =
     usePlaybackStore();
-  const [barWidth, setBarWidth] = useState(0);
 
   if (!currentTrack) return null;
+  if (pathname === "/player") return null;
 
   const progress = durationMs > 0 ? positionMs / durationMs : 0;
 
@@ -22,24 +24,10 @@ export function MiniPlayer() {
       style={{ position: "absolute", bottom: TAB_BAR_HEIGHT + bottom, left: 0, right: 0 }}
       className="bg-surface dark:bg-surface-dark border-t border-border dark:border-border-dark"
     >
-      {/* Seek bar */}
-      <Pressable
-        onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-        onPress={(e) => {
-          if (!barWidth || !durationMs) return;
-          seek(Math.round((e.nativeEvent.locationX / barWidth) * durationMs));
-        }}
-        className="h-1 bg-border dark:bg-border-dark"
-      >
-        <View
-          className="h-full bg-indigo-500"
-          style={{ width: `${Math.min(progress * 100, 100)}%` }}
-        />
-      </Pressable>
+      <SeekBar progress={progress} durationMs={durationMs} onSeek={seek} />
 
-      {/* Track info + controls */}
       <View className="flex-row items-center px-4 py-3 gap-3">
-        <View className="flex-1">
+        <Pressable className="flex-1 active:opacity-60" onPress={() => router.push("/player")}>
           <Text
             className="font-medium text-foreground dark:text-foreground-dark"
             numberOfLines={1}
@@ -52,7 +40,7 @@ export function MiniPlayer() {
           >
             {currentTrack.artistName}
           </Text>
-        </View>
+        </Pressable>
 
         <Pressable
           onPress={isPlaying ? pause : resume}

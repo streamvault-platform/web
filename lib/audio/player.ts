@@ -1,12 +1,19 @@
 import { Audio, AVPlaybackStatus } from "expo-av";
 
+export type TrackMeta = {
+  id: number | string;
+  title: string;
+  artist?: string | null;
+  album?: string | null;
+};
+
 type StatusCallback = (positionMs: number, durationMs: number, didFinish: boolean) => void;
 
 class AudioPlayer {
   private sound: Audio.Sound | null = null;
   private onStatus: StatusCallback | null = null;
 
-  async load(url: string, headers: Record<string, string>): Promise<void> {
+  async load(url: string, headers: Record<string, string>, _meta?: TrackMeta): Promise<void> {
     await this.unload();
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
@@ -30,6 +37,7 @@ class AudioPlayer {
   }
 
   async seek(positionMs: number): Promise<void> {
+    if (!isFinite(positionMs) || positionMs < 0) return;
     await this.sound?.setPositionAsync(positionMs);
   }
 
