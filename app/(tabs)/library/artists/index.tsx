@@ -29,7 +29,7 @@ export default function ArtistsScreen() {
               artist={item}
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/library/artists/[artistId]" as any,
+                  pathname: "/library/artists/[artistId]",
                   params: { artistId: item.id, artistName: item.name },
                 })
               }

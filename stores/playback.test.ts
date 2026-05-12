@@ -38,6 +38,12 @@ vi.mock("@/stores/settings", () => ({
   },
 }));
 
+vi.mock("@/stores/downloads", () => ({
+  useDownloadsStore: {
+    getState: vi.fn(() => ({ downloaded: {} })),
+  },
+}));
+
 // ─── Dynamic imports (after mocks) ───────────────────────────────────────────
 
 const { usePlaybackStore } = await import("./playback");

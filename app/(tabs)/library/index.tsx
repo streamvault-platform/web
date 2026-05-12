@@ -49,7 +49,7 @@ export default function LibraryScreen() {
         </Text>
 
         <Pressable
-          onPress={() => router.push("/(tabs)/library/search" as any)}
+          onPress={() => router.push("/library/search")}
           className="flex-row items-center bg-surface dark:bg-surface-dark rounded-xl px-3 py-2.5 active:opacity-70"
         >
           <MaterialIcons name="search" size={18} color="#71717a" />
@@ -63,13 +63,13 @@ export default function LibraryScreen() {
         <CategoryRow
           icon="person"
           label="Artists"
-          onPress={() => router.push("/(tabs)/library/artists" as any)}
+          onPress={() => router.push("/library/artists")}
         />
         <View className="h-px mx-4 bg-border dark:bg-border-dark" />
         <CategoryRow
           icon="album"
           label="Albums"
-          onPress={() => router.push("/(tabs)/library/albums" as any)}
+          onPress={() => router.push("/library/albums")}
         />
       </Section>
 
@@ -77,13 +77,13 @@ export default function LibraryScreen() {
         <CategoryRow
           icon="person"
           label="Artists"
-          onPress={() => router.push("/(tabs)/library/artists" as any)}
+          onPress={() => router.push("/library/artists")}
         />
         <View className="h-px mx-4 bg-border dark:bg-border-dark" />
         <CategoryRow
           icon="album"
           label="Albums"
-          onPress={() => router.push("/(tabs)/library/albums" as any)}
+          onPress={() => router.push("/library/albums")}
         />
       </Section>
     </SafeAreaView>

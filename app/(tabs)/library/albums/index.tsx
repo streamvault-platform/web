@@ -29,7 +29,7 @@ export default function AlbumsScreen() {
               album={item}
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/library/albums/[albumId]" as any,
+                  pathname: "/library/albums/[albumId]",
                   params: { albumId: item.id, albumTitle: item.title },
                 })
               }

@@ -91,7 +91,7 @@ export default function SearchScreen() {
                   artist={artist}
                   onPress={() =>
                     router.push({
-                      pathname: "/(tabs)/library/artists/[artistId]" as any,
+                      pathname: "/library/artists/[artistId]",
                       params: { artistId: artist.id, artistName: artist.name },
                     })
                   }
@@ -105,7 +105,7 @@ export default function SearchScreen() {
                   album={album}
                   onPress={() =>
                     router.push({
-                      pathname: "/(tabs)/library/albums/[albumId]" as any,
+                      pathname: "/library/albums/[albumId]",
                       params: { albumId: album.id, albumTitle: album.title },
                     })
                   }
