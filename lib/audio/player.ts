@@ -1,5 +1,3 @@
-import { Audio, AVPlaybackStatus } from "expo-av";
-
 export type TrackMeta = {
   id: number | string;
   title: string;
@@ -10,56 +8,57 @@ export type TrackMeta = {
 type StatusCallback = (positionMs: number, durationMs: number, didFinish: boolean) => void;
 
 class AudioPlayer {
-  private sound: Audio.Sound | null = null;
+  private audio: HTMLAudioElement | null = null;
   private onStatus: StatusCallback | null = null;
-
-  async load(url: string, headers: Record<string, string>, _meta?: TrackMeta): Promise<void> {
-    await this.unload();
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      staysActiveInBackground: true,
-      playsInSilentModeIOS: true,
-    });
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: url, headers },
-      { shouldPlay: false, progressUpdateIntervalMillis: 250 },
-      this.handleStatus
-    );
-    this.sound = sound;
-  }
-
-  async play(): Promise<void> {
-    await this.sound?.playAsync();
-  }
-
-  async pause(): Promise<void> {
-    await this.sound?.pauseAsync();
-  }
-
-  async seek(positionMs: number): Promise<void> {
-    if (!isFinite(positionMs) || positionMs < 0) return;
-    await this.sound?.setPositionAsync(positionMs);
-  }
-
-  async unload(): Promise<void> {
-    if (this.sound) {
-      await this.sound.unloadAsync();
-      this.sound = null;
-    }
-  }
 
   setOnStatusUpdate(cb: StatusCallback): void {
     this.onStatus = cb;
   }
 
-  private handleStatus = (status: AVPlaybackStatus): void => {
-    if (!status.isLoaded) return;
-    this.onStatus?.(
-      status.positionMillis,
-      status.durationMillis ?? 0,
-      status.didJustFinish ?? false
-    );
-  };
+  async load(url: string, _headers: Record<string, string>, _meta?: TrackMeta): Promise<void> {
+    await this.unload();
+    const audio = new Audio(url);
+    audio.ontimeupdate = () => {
+      this.onStatus?.(
+        Math.round(audio.currentTime * 1000),
+        isFinite(audio.duration) ? Math.round(audio.duration * 1000) : 0,
+        false
+      );
+    };
+    audio.onended = () => {
+      this.onStatus?.(
+        Math.round(audio.currentTime * 1000),
+        isFinite(audio.duration) ? Math.round(audio.duration * 1000) : 0,
+        true
+      );
+    };
+    this.audio = audio;
+  }
+
+  async play(): Promise<void> {
+    await this.audio?.play();
+  }
+
+  async pause(): Promise<void> {
+    this.audio?.pause();
+  }
+
+  async seek(positionMs: number): Promise<void> {
+    if (!this.audio || !isFinite(positionMs) || positionMs < 0) return;
+    this.audio.currentTime = positionMs / 1000;
+  }
+
+  async unload(): Promise<void> {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.src = "";
+      this.audio = null;
+    }
+  }
+
+  stop(): void {
+    this.unload();
+  }
 }
 
 export const audioPlayer = new AudioPlayer();

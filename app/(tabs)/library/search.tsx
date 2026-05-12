@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AlbumRow } from "@/components/library/AlbumRow";
 import { ArtistRow } from "@/components/library/ArtistRow";
@@ -24,6 +24,7 @@ export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const deferred = useDeferredValue(query);
   const inputRef = useRef<TextInput>(null);
+  const insets = useSafeAreaInsets();
 
   const { artists, albums, tracks, isPending } = useSearch(deferred);
   const { play } = usePlaybackStore();
@@ -38,7 +39,7 @@ export default function SearchScreen() {
   const showEmpty = deferred.trim().length > 0 && !isPending && !hasResults;
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["bottom"]}>
+    <View style={{ flex: 1, paddingTop: insets.top }} className="bg-background dark:bg-background-dark">
       <Stack.Screen options={{ headerShown: false }} />
 
       <View className="flex-row items-center px-4 pt-4 pb-3 gap-3">
@@ -74,6 +75,7 @@ export default function SearchScreen() {
         <SectionList<AnyItem, Section>
           sections={sections}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: insets.bottom }}
           renderSectionHeader={({ section }) => (
             <View className="px-4 py-2 bg-background dark:bg-background-dark">
               <Text className="text-xs font-semibold uppercase tracking-widest text-foreground-muted dark:text-foreground-muted-dark">
@@ -119,6 +121,6 @@ export default function SearchScreen() {
           stickySectionHeadersEnabled={false}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }

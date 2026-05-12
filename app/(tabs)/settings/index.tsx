@@ -1,4 +1,5 @@
-import { Pressable, SafeAreaView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 import { useAuthStore } from "@/stores/auth";
@@ -7,6 +8,7 @@ import { useSettingsStore } from "@/stores/settings";
 export default function SettingsScreen() {
   const { serverUrl } = useSettingsStore();
   const { clearTokens } = useAuthStore();
+  const insets = useSafeAreaInsets();
 
   async function handleSignOut() {
     await clearTokens();
@@ -14,7 +16,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <View style={{ flex: 1, paddingTop: insets.top }} className="bg-background dark:bg-background-dark">
       <View className="px-4 pt-6">
         <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark mb-8">
           Settings
@@ -41,6 +43,6 @@ export default function SettingsScreen() {
           </Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

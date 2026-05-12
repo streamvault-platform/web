@@ -5,12 +5,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   Text,
   TextInput,
   View,
   type TextInputProps,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthApiError, createAdmin, fetchSetupStatus, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth";
@@ -23,6 +23,7 @@ type Step =
 export default function SetupScreen() {
   const { serverUrl: savedUrl, setServerUrl } = useSettingsStore();
   const { setTokens } = useAuthStore();
+  const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState<Step>({ kind: "url" });
   const [url, setUrl] = useState(savedUrl);
@@ -93,9 +94,9 @@ export default function SetupScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }} className="bg-background dark:bg-background-dark">
       <KeyboardAvoidingView
-        className="flex-1"
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View className="flex-1 justify-center px-6 w-full max-w-sm self-center">
@@ -175,7 +176,7 @@ export default function SetupScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 

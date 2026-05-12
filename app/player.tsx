@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Platform, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SeekBar } from "@/components/player/SeekBar";
@@ -14,6 +14,7 @@ export default function PlayerScreen() {
     usePlaybackStore();
   const { seek } = usePlaybackStore();
   const isDark = useColorScheme() === "dark";
+  const insets = useSafeAreaInsets();
 
   if (!currentTrack) {
     router.back();
@@ -23,7 +24,7 @@ export default function PlayerScreen() {
   const progress = durationMs > 0 ? positionMs / durationMs : 0;
 
   const content = (
-    <>
+    <View style={{ flex: 1 }}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-2 pb-2">
         <Pressable onPress={() => router.back()} className="p-2 active:opacity-60">
@@ -35,13 +36,15 @@ export default function PlayerScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Artwork placeholder */}
-      <View className="mx-8 mt-4 mb-8 aspect-square rounded-2xl bg-surface dark:bg-surface-dark items-center justify-center">
-        <IconSymbol name="music.note" size={96} color="#6366f1" />
+      {/* Artwork placeholder — flex:1 fills space between header and track info */}
+      <View style={{ flex: 1, paddingHorizontal: 32, paddingVertical: 16 }}>
+        <View style={{ flex: 1, borderRadius: 16 }} className="bg-surface dark:bg-surface-dark items-center justify-center">
+          <IconSymbol name="music.note" size={96} color="#6366f1" />
+        </View>
       </View>
 
       {/* Track info */}
-      <View className="px-8 mb-8">
+      <View className="px-8 mb-6">
         <Text
           className="text-2xl font-bold text-foreground dark:text-foreground-dark"
           numberOfLines={1}
@@ -65,7 +68,7 @@ export default function PlayerScreen() {
       </View>
 
       {/* Seek bar + timestamps */}
-      <View className="px-8 mb-10">
+      <View className="px-8 mb-8">
         <View className="mb-2">
           <SeekBar progress={progress} durationMs={durationMs} onSeek={seek} thick />
         </View>
@@ -80,7 +83,7 @@ export default function PlayerScreen() {
       </View>
 
       {/* Controls */}
-      <View className="flex-row items-center justify-center gap-12 px-8">
+      <View className="flex-row items-center justify-center gap-12 px-8 mb-4">
         <Pressable disabled className="p-3 opacity-25">
           <IconSymbol name="backward.fill" size={30} color="#6366f1" />
         </Pressable>
@@ -102,13 +105,13 @@ export default function PlayerScreen() {
           <IconSymbol name="forward.fill" size={30} color="#6366f1" />
         </Pressable>
       </View>
-    </>
+    </View>
   );
 
   if (Platform.OS === "web") {
     return (
       <View
-        style={[StyleSheet.absoluteFillObject, { alignItems: "center", justifyContent: "center", padding: 16 }]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", padding: 16 }}
         // @ts-ignore — web-only style
         className="backdrop-blur-md bg-black/10 dark:bg-black/20"
       >
@@ -127,11 +130,11 @@ export default function PlayerScreen() {
     <BlurView
       intensity={80}
       tint={isDark ? "dark" : "light"}
-      style={StyleSheet.absoluteFillObject}
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
     >
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}>
         {content}
-      </SafeAreaView>
+      </View>
     </BlurView>
   );
 }

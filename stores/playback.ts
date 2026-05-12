@@ -33,7 +33,7 @@ function clearHeartbeat(): void {
 }
 
 export const usePlaybackStore = create<PlaybackState>()((set, get) => {
-  // On web, expo-av pushes status updates via callback.
+  // On web, HTMLAudioElement pushes status updates via callback.
   // On native, PlaybackSync component syncs RNTP hook state into the store.
   if (Platform.OS === "web") {
     audioPlayer.setOnStatusUpdate((positionMs, durationMs, didFinish) => {

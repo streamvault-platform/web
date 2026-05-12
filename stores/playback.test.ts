@@ -245,10 +245,10 @@ describe("usePlaybackStore", () => {
     });
   });
 
-  // ── status callback (web / expo-av) ──────────────────────────────────────
+  // ── status callback (web) ────────────────────────────────────────────────
 
   describe("status callback (web)", () => {
-    it("updates positionMs and durationMs from expo-av status", () => {
+    it("updates positionMs and durationMs from web audio status", () => {
       capturedStatusCallback?.(12_000, 240_000, false);
       const state = usePlaybackStore.getState();
       expect(state.positionMs).toBe(12_000);
