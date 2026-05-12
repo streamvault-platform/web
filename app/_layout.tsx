@@ -12,6 +12,7 @@ import { useAuthStore } from "@/stores/auth";
 import { MiniPlayer } from "@/components/player/MiniPlayer";
 import { PlaybackSync } from "@/components/player/PlaybackSync";
 import { setupAudioPlayer } from "@/lib/audio/setup";
+import { usePlaybackStore } from "@/stores/playback";
 
 const queryClient = new QueryClient();
 
@@ -23,12 +24,15 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const { isAuthenticated, loadTokens } = useAuthStore();
+  const { restoreFromServer } = usePlaybackStore();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    loadTokens().finally(() => setReady(true));
+    loadTokens()
+      .then(() => restoreFromServer())
+      .finally(() => setReady(true));
     setupAudioPlayer().catch(console.error);
-  }, [loadTokens]);
+  }, [loadTokens, restoreFromServer]);
 
   if (!ready) {
     return (

@@ -5,6 +5,16 @@ import { create } from "zustand";
 const KEY_ACCESS = "sv_access_token";
 const KEY_REFRESH = "sv_refresh_token";
 
+function decodeJwtSub(token: string): string | null {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof decoded.sub === "string" ? decoded.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 // SecureStore.isAvailableAsync() checks the underlying native module at runtime.
 // On web, expo-secure-store ships an empty native module, so it returns false there.
 // We resolve this once at startup and reuse it for all token operations.
@@ -28,6 +38,7 @@ const storage = {
 type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
+  username: string | null;
   isAuthenticated: boolean;
   loadTokens: () => Promise<void>;
   setTokens: (access: string, refresh: string) => Promise<void>;
@@ -37,6 +48,7 @@ type AuthState = {
 export const useAuthStore = create<AuthState>()((set) => ({
   accessToken: null,
   refreshToken: null,
+  username: null,
   isAuthenticated: false,
 
   loadTokens: async () => {
@@ -44,7 +56,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       storage.get(KEY_ACCESS),
       storage.get(KEY_REFRESH),
     ]);
-    set({ accessToken: access, refreshToken: refresh, isAuthenticated: !!access });
+    set({ accessToken: access, refreshToken: refresh, username: access ? decodeJwtSub(access) : null, isAuthenticated: !!access });
   },
 
   setTokens: async (access, refresh) => {
@@ -52,7 +64,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       storage.set(KEY_ACCESS, access),
       storage.set(KEY_REFRESH, refresh),
     ]);
-    set({ accessToken: access, refreshToken: refresh, isAuthenticated: true });
+    set({ accessToken: access, refreshToken: refresh, username: decodeJwtSub(access), isAuthenticated: true });
   },
 
   clearTokens: async () => {
@@ -60,6 +72,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
       storage.delete(KEY_ACCESS),
       storage.delete(KEY_REFRESH),
     ]);
-    set({ accessToken: null, refreshToken: null, isAuthenticated: false });
+    set({ accessToken: null, refreshToken: null, username: null, isAuthenticated: false });
   },
 }));

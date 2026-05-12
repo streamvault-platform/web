@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.streamvault.app",
+      "bundleIdentifier": "com.streamvault-platform.app",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -18,7 +18,7 @@
       }
     },
     "android": {
-      "package": "com.streamvault.app",
+      "package": "com.streamvaultplatform.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

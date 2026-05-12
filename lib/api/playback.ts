@@ -1,3 +1,12 @@
+import { apiFetch } from "@/lib/api/client";
+
+type ServerPlaybackState = { trackId: string; positionMs: number };
+
+export async function fetchPlaybackState(): Promise<ServerPlaybackState | null> {
+  const result = await apiFetch<ServerPlaybackState | undefined>("/playback/state");
+  return result ?? null;
+}
+
 let ws: WebSocket | null = null;
 
 export function connectPlaybackWs(serverUrl: string, accessToken: string): void {

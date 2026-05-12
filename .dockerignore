@@ -1,6 +1,5 @@
 node_modules
 .expo
-dist
 .git
 .vscode
 .claude
