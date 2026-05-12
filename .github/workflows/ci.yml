@@ -8,7 +8,7 @@ on:
 
 jobs:
   # ── Typecheck & extract version ───────────────────────────────────────────
-  build:
+  typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
     outputs:
@@ -29,8 +29,7 @@ jobs:
           APP_VERSION=$(node -p "require('./package.json').version")
           echo "app_version=${APP_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Type check
-        run: npx tsc --noEmit
+      - run: npx tsc --noEmit
 
   # ── Lint ─────────────────────────────────────────────────────────────────
   lint:
@@ -45,7 +44,6 @@ jobs:
           cache: "npm"
 
       - run: npm ci
-
       - run: npm run lint
 
   # ── Unit & component tests ────────────────────────────────────────────────
@@ -61,13 +59,38 @@ jobs:
           cache: "npm"
 
       - run: npm ci
-
       - run: npm test
+
+  # ── Build web assets (native runner — no QEMU) ───────────────────────────
+  build-web:
+    name: Build web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Export web bundle
+        run: npx expo export --platform web
+        env:
+          CI: "1"
+          EXPO_NO_TELEMETRY: "1"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+          retention-days: 1
 
   # ── Build & push Docker image (web / nginx) to GHCR ─────────────────────
   docker:
     name: Build & push image
-    needs: [build, lint, test]
+    needs: [typecheck, lint, test, build-web]
     if: >
       github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/release'
       || github.ref_type == 'tag'
@@ -78,10 +101,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+
       - name: Compute image tag
         id: tag
         run: |
-          VERSION="${{ needs.build.outputs.app_version }}"
+          VERSION="${{ needs.typecheck.outputs.app_version }}"
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             echo "image_tag=${VERSION}-dev" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == "refs/heads/release" ]]; then
@@ -120,7 +148,7 @@ jobs:
   #
   # eas:
   #   name: EAS Build
-  #   needs: [build, lint]
+  #   needs: [typecheck, lint]
   #   if: github.ref_type == 'tag'
   #   runs-on: ubuntu-latest
   #   steps:
