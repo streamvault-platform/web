@@ -1,0 +1,47 @@
+import { Stack, router } from "expo-router";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { AlbumRow } from "@/components/library/AlbumRow";
+import { useMyLibrary } from "@/lib/hooks/library";
+
+export default function MyAlbumsScreen() {
+  const { albums, tracks } = useMyLibrary();
+  const isLoading = tracks.length === 0 && albums.length === 0;
+
+  return (
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["bottom"]}>
+      <Stack.Screen options={{ title: "My Albums" }} />
+
+      {isLoading ? (
+        <ActivityIndicator className="flex-1" />
+      ) : (
+        <FlatList
+          data={albums}
+          keyExtractor={(a) => a.id}
+          renderItem={({ item }) => (
+            <AlbumRow
+              album={item}
+              onPress={() =>
+                router.push({
+                  pathname: "/library/albums/[albumId]",
+                  params: { albumId: item.id, albumTitle: item.title },
+                })
+              }
+            />
+          )}
+          ItemSeparatorComponent={() => (
+            <View className="h-px mx-4 bg-border dark:bg-border-dark" />
+          )}
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center py-16">
+              <Text className="text-foreground-muted dark:text-foreground-muted-dark">
+                No albums in your library yet
+              </Text>
+            </View>
+          }
+        />
+      )}
+    </SafeAreaView>
+  );
+}
