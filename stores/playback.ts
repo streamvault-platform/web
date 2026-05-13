@@ -13,6 +13,7 @@ import {
 import { getTrack } from "@/lib/api/library";
 import { useAuthStore } from "@/stores/auth";
 import { useDownloadsStore } from "@/stores/downloads";
+import { useQueueStore } from "@/stores/queue";
 import { useSettingsStore } from "@/stores/settings";
 import type { Track } from "@/lib/api/library";
 
@@ -22,10 +23,13 @@ type PlaybackState = {
   positionMs: number;
   durationMs: number;
   play: (track: Track) => Promise<void>;
+  playQueue: (tracks: Track[], startIndex: number) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   seek: (ms: number) => Promise<void>;
   stop: () => Promise<void>;
+  next: () => Promise<void>;
+  previous: () => Promise<void>;
   restoreFromServer: () => Promise<void>;
 };
 
@@ -38,11 +42,53 @@ function clearHeartbeat(): void {
   }
 }
 
+async function executePlay(
+  track: Track,
+  get: () => PlaybackState,
+  set: (partial: Partial<PlaybackState>) => void
+): Promise<void> {
+  const { serverUrl } = useSettingsStore.getState();
+  const { accessToken } = useAuthStore.getState();
+  const { downloaded } = useDownloadsStore.getState();
+
+  const isWeb = Platform.OS === "web";
+  const localEntry = !isWeb ? downloaded[track.id] : undefined;
+
+  let url: string;
+  let headers: Record<string, string> = {};
+
+  if (localEntry) {
+    url = localEntry.localPath;
+  } else {
+    const tokenParam = isWeb && accessToken ? `?token=${encodeURIComponent(accessToken)}` : "";
+    url = `${serverUrl}/api/stream/${track.id}${tokenParam}`;
+    if (!isWeb && accessToken) headers = { Authorization: `Bearer ${accessToken}` };
+  }
+
+  await audioPlayer.load(url, headers, {
+    id: track.id,
+    title: track.title,
+    artist: track.artistName,
+    album: track.albumTitle,
+  });
+  await audioPlayer.play();
+
+  set({ currentTrack: track, isPlaying: true, positionMs: 0 });
+
+  if (accessToken) {
+    connectPlaybackWs(serverUrl, accessToken);
+    sendPlaybackEvent({ type: "PLAY", trackId: track.id, positionMs: 0 });
+    clearHeartbeat();
+    heartbeatInterval = setInterval(() => {
+      const { currentTrack: t, positionMs } = get();
+      if (t) sendPlaybackEvent({ type: "HEARTBEAT", trackId: t.id, positionMs });
+    }, 15_000);
+  }
+}
+
 export const usePlaybackStore = create<PlaybackState>()(
   persist(
     (set, get) => {
-      // On web, HTMLAudioElement pushes status updates via callback.
-      // On native, PlaybackSync component syncs RNTP hook state into the store.
       if (Platform.OS === "web") {
         audioPlayer.setOnStatusUpdate((positionMs, durationMs, didFinish) => {
           set({ positionMs, durationMs });
@@ -60,43 +106,14 @@ export const usePlaybackStore = create<PlaybackState>()(
         durationMs: 0,
 
         play: async (track) => {
-          const { serverUrl } = useSettingsStore.getState();
-          const { accessToken } = useAuthStore.getState();
-          const { downloaded } = useDownloadsStore.getState();
+          useQueueStore.getState().setQueue([track], 0);
+          await executePlay(track, get, set);
+        },
 
-          const isWeb = Platform.OS === "web";
-          const localEntry = !isWeb ? downloaded[track.id] : undefined;
-
-          let url: string;
-          let headers: Record<string, string> = {};
-
-          if (localEntry) {
-            url = localEntry.localPath;
-          } else {
-            const tokenParam = isWeb && accessToken ? `?token=${encodeURIComponent(accessToken)}` : "";
-            url = `${serverUrl}/api/stream/${track.id}${tokenParam}`;
-            if (!isWeb && accessToken) headers = { Authorization: `Bearer ${accessToken}` };
-          }
-
-          await audioPlayer.load(url, headers, {
-            id: track.id,
-            title: track.title,
-            artist: track.artistName,
-            album: track.albumTitle,
-          });
-          await audioPlayer.play();
-
-          set({ currentTrack: track, isPlaying: true, positionMs: 0 });
-
-          if (accessToken) {
-            connectPlaybackWs(serverUrl, accessToken);
-            sendPlaybackEvent({ type: "PLAY", trackId: track.id, positionMs: 0 });
-            clearHeartbeat();
-            heartbeatInterval = setInterval(() => {
-              const { currentTrack: t, positionMs } = get();
-              if (t) sendPlaybackEvent({ type: "HEARTBEAT", trackId: t.id, positionMs });
-            }, 15_000);
-          }
+        playQueue: async (tracks, startIndex) => {
+          useQueueStore.getState().setQueue(tracks, startIndex);
+          const track = tracks[startIndex];
+          if (track) await executePlay(track, get, set);
         },
 
         pause: async () => {
@@ -135,7 +152,24 @@ export const usePlaybackStore = create<PlaybackState>()(
           clearHeartbeat();
           disconnectPlaybackWs();
           await audioPlayer.unload();
+          useQueueStore.getState().setQueue([], 0);
           set({ currentTrack: null, isPlaying: false, positionMs: 0, durationMs: 0 });
+        },
+
+        next: async () => {
+          const nextTrack = useQueueStore.getState().next();
+          if (nextTrack) await executePlay(nextTrack, get, set);
+        },
+
+        previous: async () => {
+          const { positionMs } = get();
+          if (positionMs > 3000) {
+            await audioPlayer.seek(0);
+            set({ positionMs: 0 });
+            return;
+          }
+          const prevTrack = useQueueStore.getState().previous();
+          if (prevTrack) await executePlay(prevTrack, get, set);
         },
 
         restoreFromServer: async () => {

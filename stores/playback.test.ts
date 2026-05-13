@@ -44,6 +44,22 @@ vi.mock("@/stores/downloads", () => ({
   },
 }));
 
+const { mockQueueNext, mockQueuePrevious, mockQueueSetQueue } = vi.hoisted(() => ({
+  mockQueueNext: vi.fn(),
+  mockQueuePrevious: vi.fn(),
+  mockQueueSetQueue: vi.fn(),
+}));
+
+vi.mock("@/stores/queue", () => ({
+  useQueueStore: {
+    getState: vi.fn(() => ({
+      next: mockQueueNext,
+      previous: mockQueuePrevious,
+      setQueue: mockQueueSetQueue,
+    })),
+  },
+}));
+
 // ─── Dynamic imports (after mocks) ───────────────────────────────────────────
 
 const { usePlaybackStore } = await import("./playback");
@@ -69,6 +85,13 @@ const track: Track = {
   mimeType: "audio/mpeg",
 };
 
+const track2: Track = {
+  ...track,
+  id: "2",
+  title: "Come Together",
+  trackNumber: 1,
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function resetStore() {
@@ -85,6 +108,8 @@ function resetStore() {
 describe("usePlaybackStore", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockQueueNext.mockReturnValue(null);
+    mockQueuePrevious.mockReturnValue(null);
     resetStore();
   });
 
@@ -106,6 +131,11 @@ describe("usePlaybackStore", () => {
   // ── play ─────────────────────────────────────────────────────────────────
 
   describe("play()", () => {
+    it("sets queue to single-track before loading", async () => {
+      await usePlaybackStore.getState().play(track);
+      expect(mockQueueSetQueue).toHaveBeenCalledWith([track], 0);
+    });
+
     it("loads the stream URL with token query param on web", async () => {
       await usePlaybackStore.getState().play(track);
       expect(audioPlayer.load).toHaveBeenCalledWith(
@@ -157,6 +187,30 @@ describe("usePlaybackStore", () => {
 
       vi.advanceTimersByTime(15_000);
       expect(sendPlaybackEvent).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  // ── playQueue ────────────────────────────────────────────────────────────
+
+  describe("playQueue()", () => {
+    it("sets queue with all tracks and correct startIndex", async () => {
+      await usePlaybackStore.getState().playQueue([track, track2], 1);
+      expect(mockQueueSetQueue).toHaveBeenCalledWith([track, track2], 1);
+    });
+
+    it("loads and plays the track at startIndex", async () => {
+      await usePlaybackStore.getState().playQueue([track, track2], 1);
+      expect(audioPlayer.load).toHaveBeenCalledWith(
+        "http://localhost:8080/api/stream/2?token=test-token",
+        {},
+        expect.objectContaining({ id: "2", title: "Come Together" })
+      );
+      expect(usePlaybackStore.getState().currentTrack).toEqual(track2);
+    });
+
+    it("is a no-op when startIndex is out of bounds", async () => {
+      await usePlaybackStore.getState().playQueue([], 0);
+      expect(audioPlayer.load).not.toHaveBeenCalled();
     });
   });
 
@@ -248,6 +302,63 @@ describe("usePlaybackStore", () => {
       await usePlaybackStore.getState().stop();
       expect(audioPlayer.unload).toHaveBeenCalledOnce();
       expect(disconnectPlaybackWs).toHaveBeenCalledOnce();
+    });
+
+    it("clears the queue", async () => {
+      await usePlaybackStore.getState().stop();
+      expect(mockQueueSetQueue).toHaveBeenCalledWith([], 0);
+    });
+  });
+
+  // ── next ─────────────────────────────────────────────────────────────────
+
+  describe("next()", () => {
+    it("loads and plays the next track from the queue", async () => {
+      mockQueueNext.mockReturnValue(track2);
+      await usePlaybackStore.getState().next();
+      expect(audioPlayer.load).toHaveBeenCalledWith(
+        "http://localhost:8080/api/stream/2?token=test-token",
+        {},
+        expect.objectContaining({ id: "2" })
+      );
+      expect(usePlaybackStore.getState().currentTrack).toEqual(track2);
+    });
+
+    it("is a no-op when at the end of the queue", async () => {
+      mockQueueNext.mockReturnValue(null);
+      await usePlaybackStore.getState().next();
+      expect(audioPlayer.load).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── previous ─────────────────────────────────────────────────────────────
+
+  describe("previous()", () => {
+    it("seeks to 0 and stays on the current track when positionMs > 3000", async () => {
+      usePlaybackStore.setState({ currentTrack: track, positionMs: 5000 });
+      await usePlaybackStore.getState().previous();
+      expect(audioPlayer.seek).toHaveBeenCalledWith(0);
+      expect(usePlaybackStore.getState().positionMs).toBe(0);
+      expect(mockQueuePrevious).not.toHaveBeenCalled();
+    });
+
+    it("loads the previous track when positionMs <= 3000", async () => {
+      mockQueuePrevious.mockReturnValue(track2);
+      usePlaybackStore.setState({ currentTrack: track, positionMs: 1000 });
+      await usePlaybackStore.getState().previous();
+      expect(mockQueuePrevious).toHaveBeenCalledOnce();
+      expect(audioPlayer.load).toHaveBeenCalledWith(
+        expect.stringContaining("/2"),
+        expect.any(Object),
+        expect.objectContaining({ id: "2" })
+      );
+    });
+
+    it("is a no-op at the start of the queue (positionMs <= 3000)", async () => {
+      mockQueuePrevious.mockReturnValue(null);
+      usePlaybackStore.setState({ currentTrack: track, positionMs: 0 });
+      await usePlaybackStore.getState().previous();
+      expect(audioPlayer.load).not.toHaveBeenCalled();
     });
   });
 

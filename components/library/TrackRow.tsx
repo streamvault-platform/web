@@ -2,6 +2,7 @@ import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native
 
 import type { Track } from "@/lib/api/library";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { TrackContextMenu } from "@/components/library/TrackContextMenu";
 import { useDownloadsStore } from "@/stores/downloads";
 import { formatDuration } from "@/lib/utils/format";
 
@@ -11,18 +12,9 @@ type Props = {
 };
 
 export function TrackRow({ track, onPress }: Props) {
-  const { downloaded, pending, download, remove } = useDownloadsStore();
-  const isDownloaded = !!downloaded[track.id];
-  const isPending = !!pending[track.id];
-
-  function handleDownload() {
-    if (isPending) return;
-    if (isDownloaded) {
-      remove(track.id);
-    } else {
-      download(track);
-    }
-  }
+  const { downloaded, pending } = useDownloadsStore();
+  const isDownloaded = Platform.OS !== "web" && !!downloaded[track.id];
+  const isPending = Platform.OS !== "web" && !!pending[track.id];
 
   return (
     <View className="flex-row items-center px-4 py-3">
@@ -43,17 +35,18 @@ export function TrackRow({ track, onPress }: Props) {
         </Text>
       </Pressable>
 
-      {Platform.OS !== "web" && (
-        <Pressable onPress={handleDownload} className="pl-3 p-1 active:opacity-60">
-          {isPending ? (
-            <ActivityIndicator size="small" color="#6366f1" />
-          ) : isDownloaded ? (
-            <IconSymbol name="checkmark.circle.fill" size={20} color="#6366f1" />
-          ) : (
-            <IconSymbol name="arrow.down.circle" size={20} color="#71717a" />
-          )}
-        </Pressable>
-      )}
+      {isPending ? (
+        <ActivityIndicator size="small" color="#6366f1" style={{ marginLeft: 8 }} />
+      ) : isDownloaded ? (
+        <IconSymbol
+          name="checkmark.circle.fill"
+          size={18}
+          color="#6366f1"
+          style={{ marginLeft: 8 }}
+        />
+      ) : null}
+
+      <TrackContextMenu track={track} />
     </View>
   );
 }

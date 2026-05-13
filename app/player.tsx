@@ -1,18 +1,23 @@
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
-import { Platform, Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import { FlatList, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SeekBar } from "@/components/player/SeekBar";
 import { formatDuration } from "@/lib/utils/format";
 import { usePlaybackStore } from "@/stores/playback";
+import { useQueueStore } from "@/stores/queue";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function PlayerScreen() {
-  const { currentTrack, isPlaying, positionMs, durationMs, pause, resume } =
+  const [showQueue, setShowQueue] = useState(false);
+
+  const { currentTrack, isPlaying, positionMs, durationMs, pause, resume, seek, next, previous } =
     usePlaybackStore();
-  const { seek } = usePlaybackStore();
+  const { hasNext, hasPrevious, tracks, currentIndex } = useQueueStore();
+
   const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
 
@@ -33,14 +38,76 @@ export default function PlayerScreen() {
         <Text className="font-semibold text-foreground dark:text-foreground-dark">
           Now Playing
         </Text>
-        <View style={{ width: 40 }} />
+        <Pressable
+          onPress={() => setShowQueue((q) => !q)}
+          className="p-2 active:opacity-60"
+          accessibilityLabel="Toggle queue"
+        >
+          <IconSymbol
+            name="list.bullet"
+            size={22}
+            color={showQueue ? "#6366f1" : "#71717a"}
+          />
+        </Pressable>
       </View>
 
-      {/* Artwork placeholder — flex:1 fills space between header and track info */}
-      <View style={{ flex: 1, paddingHorizontal: 32, paddingVertical: 16 }}>
-        <View style={{ flex: 1, borderRadius: 16 }} className="bg-surface dark:bg-surface-dark items-center justify-center">
-          <IconSymbol name="music.note" size={96} color="#6366f1" />
-        </View>
+      {/* Artwork or Queue */}
+      <View style={{ flex: 1, paddingHorizontal: showQueue ? 0 : 32, paddingVertical: 16 }}>
+        {showQueue ? (
+          <FlatList
+            data={tracks}
+            keyExtractor={(t, index) => `${t.id}-${index}`}
+            renderItem={({ item, index }) => (
+              <View
+                className="px-4 py-3 flex-row items-center gap-3"
+                style={{
+                  backgroundColor:
+                    index === currentIndex ? "rgba(99,102,241,0.08)" : undefined,
+                }}
+              >
+                {index === currentIndex ? (
+                  <IconSymbol name="music.note" size={14} color="#6366f1" />
+                ) : (
+                  <Text className="w-3.5 text-xs text-center text-foreground-muted dark:text-foreground-muted-dark">
+                    {index + 1}
+                  </Text>
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text
+                    className="text-sm font-medium"
+                    numberOfLines={1}
+                    style={{ color: index === currentIndex ? "#6366f1" : undefined }}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    className="text-xs text-foreground-muted dark:text-foreground-muted-dark"
+                    numberOfLines={1}
+                  >
+                    {item.artistName}
+                  </Text>
+                </View>
+              </View>
+            )}
+            ItemSeparatorComponent={() => (
+              <View className="h-px mx-4 bg-border dark:bg-border-dark" />
+            )}
+            ListEmptyComponent={
+              <View className="items-center justify-center py-16">
+                <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
+                  Queue is empty
+                </Text>
+              </View>
+            }
+          />
+        ) : (
+          <View
+            style={{ flex: 1, borderRadius: 16 }}
+            className="bg-surface dark:bg-surface-dark items-center justify-center"
+          >
+            <IconSymbol name="music.note" size={96} color="#6366f1" />
+          </View>
+        )}
       </View>
 
       {/* Track info */}
@@ -84,7 +151,12 @@ export default function PlayerScreen() {
 
       {/* Controls */}
       <View className="flex-row items-center justify-center gap-12 px-8 mb-4">
-        <Pressable disabled className="p-3 opacity-25">
+        <Pressable
+          onPress={previous}
+          style={{ opacity: hasPrevious ? 1 : 0.25 }}
+          className="p-3 active:opacity-60"
+          accessibilityLabel="Previous"
+        >
           <IconSymbol name="backward.fill" size={30} color="#6366f1" />
         </Pressable>
 
@@ -101,7 +173,12 @@ export default function PlayerScreen() {
           />
         </Pressable>
 
-        <Pressable disabled className="p-3 opacity-25">
+        <Pressable
+          onPress={next}
+          style={{ opacity: hasNext ? 1 : 0.25 }}
+          className="p-3 active:opacity-60"
+          accessibilityLabel="Next"
+        >
           <IconSymbol name="forward.fill" size={30} color="#6366f1" />
         </Pressable>
       </View>

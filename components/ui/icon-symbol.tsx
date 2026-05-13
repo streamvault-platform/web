@@ -26,6 +26,11 @@ const MAPPING = {
   'pause.fill': 'pause',
   'backward.fill': 'skip-previous',
   'forward.fill': 'skip-next',
+  'ellipsis': 'more-horiz',
+  'list.bullet': 'format-list-bulleted',
+  'checkmark.circle.fill': 'check-circle',
+  'arrow.down.circle': 'file-download',
+  'arrow.down.circle.fill': 'downloading',
 } as IconMapping;
 
 /**
