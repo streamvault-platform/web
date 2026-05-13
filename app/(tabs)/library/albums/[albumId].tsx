@@ -14,7 +14,7 @@ export default function AlbumTracksScreen() {
 
   const { data: album } = useAlbum(albumId);
   const { data: tracks, isPending, isError } = useTracks(albumId);
-  const { play } = usePlaybackStore();
+  const { playQueue } = usePlaybackStore();
 
   const title = album?.title ?? albumTitle ?? "Tracks";
 
@@ -43,8 +43,8 @@ export default function AlbumTracksScreen() {
               </View>
             ) : null
           }
-          renderItem={({ item }) => (
-            <TrackRow track={item} onPress={() => play(item)} />
+          renderItem={({ item, index }) => (
+            <TrackRow track={item} onPress={() => playQueue(tracks ?? [], index)} />
           )}
           ItemSeparatorComponent={() => (
             <View className="h-px mx-4 bg-border dark:bg-border-dark" />

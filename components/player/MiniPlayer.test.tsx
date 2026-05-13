@@ -7,9 +7,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockPause = vi.fn();
 const mockResume = vi.fn();
 const mockSeek = vi.fn();
+const mockNext = vi.fn();
+const mockPrevious = vi.fn();
 
 vi.mock("@/stores/playback", () => ({
   usePlaybackStore: vi.fn(),
+}));
+
+vi.mock("@/stores/queue", () => ({
+  useQueueStore: vi.fn(),
 }));
 
 vi.mock("react-native-safe-area-context", () => ({
@@ -25,7 +31,9 @@ vi.mock("expo-router", () => ({
 }));
 
 vi.mock("@/components/ui/icon-symbol", () => ({
-  IconSymbol: ({ name }: { name: string }) => <div data-testid="icon">{name}</div>,
+  IconSymbol: ({ name }: { name: string }) => (
+    <div data-testid={`icon-${name}`}>{name}</div>
+  ),
 }));
 
 vi.mock("@/components/player/SeekBar", () => ({
@@ -35,6 +43,7 @@ vi.mock("@/components/player/SeekBar", () => ({
 // ─── Dynamic imports ──────────────────────────────────────────────────────────
 
 const { usePlaybackStore } = await import("@/stores/playback");
+const { useQueueStore } = await import("@/stores/queue");
 const { MiniPlayer } = await import("./MiniPlayer");
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -55,7 +64,10 @@ const track = {
   filePath: "/originals/hey-jude.mp3",
 };
 
-function setupStore(overrides: Record<string, unknown> = {}) {
+function setupStore(
+  playbackOverrides: Record<string, unknown> = {},
+  queueOverrides: Record<string, unknown> = {}
+) {
   vi.mocked(usePlaybackStore).mockReturnValue({
     currentTrack: track,
     isPlaying: false,
@@ -64,8 +76,16 @@ function setupStore(overrides: Record<string, unknown> = {}) {
     pause: mockPause,
     resume: mockResume,
     seek: mockSeek,
-    ...overrides,
+    next: mockNext,
+    previous: mockPrevious,
+    ...playbackOverrides,
   } as ReturnType<typeof usePlaybackStore>);
+
+  vi.mocked(useQueueStore).mockReturnValue({
+    hasNext: false,
+    hasPrevious: false,
+    ...queueOverrides,
+  } as ReturnType<typeof useQueueStore>);
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -80,6 +100,10 @@ describe("MiniPlayer", () => {
     vi.mocked(usePlaybackStore).mockReturnValue({
       currentTrack: null,
     } as ReturnType<typeof usePlaybackStore>);
+    vi.mocked(useQueueStore).mockReturnValue({
+      hasNext: false,
+      hasPrevious: false,
+    } as ReturnType<typeof useQueueStore>);
     const { container } = render(<MiniPlayer />);
     expect(container.firstChild).toBeNull();
   });
@@ -112,13 +136,13 @@ describe("MiniPlayer", () => {
   it("shows play icon when paused", () => {
     setupStore({ isPlaying: false });
     render(<MiniPlayer />);
-    expect(screen.getByTestId("icon").textContent).toBe("play.fill");
+    expect(screen.getByTestId("icon-play.fill")).toBeInTheDocument();
   });
 
   it("shows pause icon when playing", () => {
     setupStore({ isPlaying: true });
     render(<MiniPlayer />);
-    expect(screen.getByTestId("icon").textContent).toBe("pause.fill");
+    expect(screen.getByTestId("icon-pause.fill")).toBeInTheDocument();
   });
 
   it("calls pause() when pressing the button while playing", () => {
@@ -140,5 +164,63 @@ describe("MiniPlayer", () => {
     render(<MiniPlayer />);
     fireEvent.click(screen.getByText("Hey Jude"));
     expect(mockPush).toHaveBeenCalledWith("/player");
+  });
+
+  // ── Previous / Next buttons ───────────────────────────────────────────────
+
+  it("renders the previous button", () => {
+    setupStore();
+    render(<MiniPlayer />);
+    expect(screen.getByLabelText("Previous")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-backward.fill")).toBeInTheDocument();
+  });
+
+  it("renders the next button", () => {
+    setupStore();
+    render(<MiniPlayer />);
+    expect(screen.getByLabelText("Next")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-forward.fill")).toBeInTheDocument();
+  });
+
+  it("calls previous() when pressing the previous button", () => {
+    setupStore({}, { hasPrevious: true });
+    render(<MiniPlayer />);
+    fireEvent.click(screen.getByLabelText("Previous"));
+    expect(mockPrevious).toHaveBeenCalledOnce();
+  });
+
+  it("calls next() when pressing the next button", () => {
+    setupStore({}, { hasNext: true });
+    render(<MiniPlayer />);
+    fireEvent.click(screen.getByLabelText("Next"));
+    expect(mockNext).toHaveBeenCalledOnce();
+  });
+
+  it("dims the previous button when hasPrevious is false", () => {
+    setupStore({}, { hasPrevious: false });
+    render(<MiniPlayer />);
+    const btn = screen.getByLabelText("Previous").closest("[style]");
+    expect(btn?.getAttribute("style")).toContain("opacity: 0.3");
+  });
+
+  it("dims the next button when hasNext is false", () => {
+    setupStore({}, { hasNext: false });
+    render(<MiniPlayer />);
+    const btn = screen.getByLabelText("Next").closest("[style]");
+    expect(btn?.getAttribute("style")).toContain("opacity: 0.3");
+  });
+
+  it("shows previous button at full opacity when hasPrevious is true", () => {
+    setupStore({}, { hasPrevious: true });
+    render(<MiniPlayer />);
+    const btn = screen.getByLabelText("Previous").closest("[style]");
+    expect(btn?.getAttribute("style")).toContain("opacity: 1");
+  });
+
+  it("shows next button at full opacity when hasNext is true", () => {
+    setupStore({}, { hasNext: true });
+    render(<MiniPlayer />);
+    const btn = screen.getByLabelText("Next").closest("[style]");
+    expect(btn?.getAttribute("style")).toContain("opacity: 1");
   });
 });
