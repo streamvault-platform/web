@@ -1,16 +1,22 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  addToLibrary,
   getAlbum,
   getArtist,
+  getMyLibrary,
   getTrack,
   listAlbums,
   listArtists,
   listTracks,
+  removeFromLibrary,
   searchAlbums,
   searchArtists,
   searchTracks,
 } from "@/lib/api/library";
+import type { Album, Artist } from "@/lib/api/library";
+import { useLibraryStore } from "@/stores/library";
 
 export const useArtists = () =>
   useQuery({ queryKey: ["artists"], queryFn: () => listArtists() });
@@ -55,4 +61,61 @@ export const useSearch = (q: string) => {
   });
   const isPending = enabled && (artists.isPending || albums.isPending || tracks.isPending);
   return { artists: artists.data ?? [], albums: albums.data ?? [], tracks: tracks.data ?? [], isPending };
+};
+
+export const useMyLibrary = () => {
+  const { myTracks: cached, setMyTracks } = useLibraryStore();
+
+  const { data } = useQuery({
+    queryKey: ["library", "my"],
+    queryFn: getMyLibrary,
+    placeholderData: cached,
+  });
+
+  useEffect(() => {
+    if (data) setMyTracks(data);
+  }, [data, setMyTracks]);
+
+  const tracks = data ?? cached;
+
+  const artistMap = new Map<string, Artist>();
+  const albumMap = new Map<string, Album>();
+
+  for (const t of tracks) {
+    if (t.artistId && !artistMap.has(t.artistId))
+      artistMap.set(t.artistId, { id: t.artistId, name: t.artist ?? "" });
+    if (t.albumId && !albumMap.has(t.albumId))
+      albumMap.set(t.albumId, {
+        id: t.albumId,
+        title: t.album ?? "",
+        artistId: t.artistId,
+        artistName: t.artist,
+        year: null,
+      });
+  }
+
+  const libraryIds = new Set(tracks.map((t) => t.trackId));
+
+  return {
+    tracks,
+    artists: [...artistMap.values()],
+    albums: [...albumMap.values()],
+    isInLibrary: (trackId: string) => libraryIds.has(trackId),
+  };
+};
+
+export const useAddToLibrary = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: addToLibrary,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["library", "my"] }),
+  });
+};
+
+export const useRemoveFromLibrary = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: removeFromLibrary,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["library", "my"] }),
+  });
 };

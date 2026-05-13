@@ -8,6 +8,8 @@ const mockPlayNext = vi.fn();
 const mockAddToQueue = vi.fn();
 const mockDownload = vi.fn();
 const mockRemove = vi.fn();
+const mockAddToLibraryMutate = vi.fn();
+const mockRemoveFromLibraryMutate = vi.fn();
 
 vi.mock("@/stores/queue", () => ({
   useQueueStore: vi.fn(() => ({
@@ -25,6 +27,12 @@ vi.mock("@/stores/downloads", () => ({
   })),
 }));
 
+vi.mock("@/lib/hooks/library", () => ({
+  useMyLibrary: vi.fn(() => ({ isInLibrary: () => false })),
+  useAddToLibrary: vi.fn(() => ({ mutate: mockAddToLibraryMutate })),
+  useRemoveFromLibrary: vi.fn(() => ({ mutate: mockRemoveFromLibraryMutate })),
+}));
+
 vi.mock("@/components/ui/icon-symbol", () => ({
   IconSymbol: ({ name }: { name: string }) => <div data-testid={`icon-${name}`}>{name}</div>,
 }));
@@ -32,6 +40,7 @@ vi.mock("@/components/ui/icon-symbol", () => ({
 // ─── Dynamic imports ──────────────────────────────────────────────────────────
 
 const { useDownloadsStore } = await import("@/stores/downloads");
+const { useMyLibrary } = await import("@/lib/hooks/library");
 const { TrackContextMenu } = await import("./TrackContextMenu");
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -67,6 +76,12 @@ describe("TrackContextMenu", () => {
       download: mockDownload,
       remove: mockRemove,
     } as ReturnType<typeof useDownloadsStore>);
+    vi.mocked(useMyLibrary).mockReturnValue({
+      isInLibrary: () => false,
+      tracks: [],
+      artists: [],
+      albums: [],
+    } as ReturnType<typeof useMyLibrary>);
   });
 
   it("renders the more-options (···) button", () => {
@@ -124,12 +139,61 @@ describe("TrackContextMenu", () => {
     });
 
     it("shows Download option on non-web when not downloaded", () => {
-      // Simulate native by checking the conditional rendering
-      // (on web the download option is hidden — see component)
-      // We verify it's NOT present on web (jsdom = web)
       render(<TrackContextMenu track={track} />);
       openMenu();
       expect(screen.queryByText("Download")).not.toBeInTheDocument();
+    });
+
+    // ── Library toggle ───────────────────────────────────────────────────────
+
+    it("shows 'Add to Library' when track is not in library", () => {
+      vi.mocked(useMyLibrary).mockReturnValue({
+        isInLibrary: () => false,
+        tracks: [],
+        artists: [],
+        albums: [],
+      } as ReturnType<typeof useMyLibrary>);
+      render(<TrackContextMenu track={track} />);
+      openMenu();
+      expect(screen.getByText("Add to Library")).toBeInTheDocument();
+    });
+
+    it("shows 'Remove from Library' when track is in library", () => {
+      vi.mocked(useMyLibrary).mockReturnValue({
+        isInLibrary: () => true,
+        tracks: [],
+        artists: [],
+        albums: [],
+      } as ReturnType<typeof useMyLibrary>);
+      render(<TrackContextMenu track={track} />);
+      openMenu();
+      expect(screen.getByText("Remove from Library")).toBeInTheDocument();
+    });
+
+    it("calls addToLibrary.mutate when pressing Add to Library", () => {
+      vi.mocked(useMyLibrary).mockReturnValue({
+        isInLibrary: () => false,
+        tracks: [],
+        artists: [],
+        albums: [],
+      } as ReturnType<typeof useMyLibrary>);
+      render(<TrackContextMenu track={track} />);
+      openMenu();
+      fireEvent.click(screen.getByText("Add to Library"));
+      expect(mockAddToLibraryMutate).toHaveBeenCalledWith(track.id);
+    });
+
+    it("calls removeFromLibrary.mutate when pressing Remove from Library", () => {
+      vi.mocked(useMyLibrary).mockReturnValue({
+        isInLibrary: () => true,
+        tracks: [],
+        artists: [],
+        albums: [],
+      } as ReturnType<typeof useMyLibrary>);
+      render(<TrackContextMenu track={track} />);
+      openMenu();
+      fireEvent.click(screen.getByText("Remove from Library"));
+      expect(mockRemoveFromLibraryMutate).toHaveBeenCalledWith(track.id);
     });
   });
 });

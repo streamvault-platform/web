@@ -4,6 +4,7 @@ import type { Track } from "@/lib/api/library";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { TrackContextMenu } from "@/components/library/TrackContextMenu";
 import { useDownloadsStore } from "@/stores/downloads";
+import { useIsOnline } from "@/hooks/use-online";
 import { formatDuration } from "@/lib/utils/format";
 
 type Props = {
@@ -13,12 +14,17 @@ type Props = {
 
 export function TrackRow({ track, onPress }: Props) {
   const { downloaded, pending } = useDownloadsStore();
+  const isOnline = useIsOnline();
   const isDownloaded = Platform.OS !== "web" && !!downloaded[track.id];
   const isPending = Platform.OS !== "web" && !!pending[track.id];
+  const isPlayable = isOnline || isDownloaded;
 
   return (
-    <View className="flex-row items-center px-4 py-3">
-      <Pressable className="flex-1 flex-row items-center active:opacity-60" onPress={onPress}>
+    <View className={`flex-row items-center px-4 py-3 ${!isPlayable ? "opacity-40" : ""}`}>
+      <Pressable
+        className="flex-1 flex-row items-center active:opacity-60"
+        onPress={isPlayable ? onPress : undefined}
+      >
         {track.trackNumber != null && (
           <Text className="w-7 mr-3 text-sm text-right text-foreground-muted dark:text-foreground-muted-dark">
             {track.trackNumber}

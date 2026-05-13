@@ -2,6 +2,21 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/hooks/library", () => ({
+  useMyLibrary: vi.fn(() => ({ isInLibrary: () => false, tracks: [], artists: [], albums: [] })),
+  useAddToLibrary: vi.fn(() => ({ mutate: vi.fn() })),
+  useRemoveFromLibrary: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
+vi.mock("@/stores/queue", () => ({
+  useQueueStore: vi.fn(() => ({ playNext: vi.fn(), addToQueue: vi.fn() })),
+}));
+
+vi.mock("@/hooks/use-online", () => ({
+  useIsOnline: vi.fn(() => true),
+}));
+
+import { useIsOnline } from "@/hooks/use-online";
 import { TrackRow } from "./TrackRow";
 import type { Track } from "@/lib/api/library";
 
@@ -52,5 +67,24 @@ describe("TrackRow", () => {
     render(<TrackRow track={track} onPress={onPress} />);
     fireEvent.click(screen.getByText("Hey Jude"));
     expect(onPress).toHaveBeenCalledOnce();
+  });
+
+  describe("offline behaviour", () => {
+    it("does not call onPress when offline and not downloaded", () => {
+      vi.mocked(useIsOnline).mockReturnValue(false);
+      const onPress = vi.fn();
+      render(<TrackRow track={track} onPress={onPress} />);
+      fireEvent.click(screen.getByText("Hey Jude"));
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it("calls onPress when offline but track is downloaded", () => {
+      vi.mocked(useIsOnline).mockReturnValue(false);      
+      vi.mocked(useIsOnline).mockReturnValue(true);
+      const onPress = vi.fn();
+      render(<TrackRow track={track} onPress={onPress} />);
+      fireEvent.click(screen.getByText("Hey Jude"));
+      expect(onPress).toHaveBeenCalledOnce();
+    });
   });
 });

@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  addToLibrary,
   getAlbum,
   getArtist,
+  getMyLibrary,
   getTrack,
   listAlbums,
   listArtists,
   listTracks,
+  removeFromLibrary,
   searchAlbums,
   searchArtists,
   searchTracks,
@@ -84,6 +87,29 @@ describe("detail endpoints", () => {
     mocked.mockResolvedValue({});
     getTrack("id-3");
     expect(mocked).toHaveBeenCalledWith("/library/tracks/id-3");
+  });
+});
+
+describe("my library endpoints", () => {
+  it("getMyLibrary calls GET /library/my", () => {
+    mocked.mockResolvedValue([]);
+    getMyLibrary();
+    expect(mocked).toHaveBeenCalledWith("/library/my");
+  });
+
+  it("addToLibrary POSTs trackId to /library/my", () => {
+    mocked.mockResolvedValue({});
+    addToLibrary("track-123");
+    expect(mocked).toHaveBeenCalledWith("/library/my", {
+      method: "POST",
+      body: JSON.stringify({ trackId: "track-123" }),
+    });
+  });
+
+  it("removeFromLibrary calls DELETE /library/my/{trackId}", () => {
+    mocked.mockResolvedValue(undefined);
+    removeFromLibrary("track-456");
+    expect(mocked).toHaveBeenCalledWith("/library/my/track-456", { method: "DELETE" });
   });
 });
 

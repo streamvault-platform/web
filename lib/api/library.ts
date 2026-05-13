@@ -61,3 +61,24 @@ export const searchAlbums = (q: string): Promise<Album[]> =>
 
 export const searchTracks = (q: string): Promise<Track[]> =>
   apiFetch(`/library/tracks?q=${encodeURIComponent(q)}`);
+
+export type UserLibraryTrack = {
+  trackId: string;
+  artistId: string | null;
+  albumId: string | null;
+  title: string;
+  artist: string | null;
+  album: string | null;
+  durationMs: number | null;
+  mimeType: string;
+  addedAt: string;
+};
+
+export const getMyLibrary = (): Promise<UserLibraryTrack[]> =>
+  apiFetch("/library/my");
+
+export const addToLibrary = (trackId: string): Promise<UserLibraryTrack> =>
+  apiFetch("/library/my", { method: "POST", body: JSON.stringify({ trackId }) });
+
+export const removeFromLibrary = (trackId: string): Promise<void> =>
+  apiFetch(`/library/my/${trackId}`, { method: "DELETE" });

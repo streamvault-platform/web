@@ -3,13 +3,17 @@ import { router, Stack } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useMyLibrary } from "@/lib/hooks/library";
+
 function CategoryRow({
   icon,
   label,
+  detail,
   onPress,
 }: {
   icon: React.ComponentProps<typeof MaterialIcons>["name"];
   label: string;
+  detail?: string;
   onPress: () => void;
 }) {
   return (
@@ -21,6 +25,11 @@ function CategoryRow({
       <Text className="flex-1 text-base text-foreground dark:text-foreground-dark">
         {label}
       </Text>
+      {detail ? (
+        <Text className="mr-2 text-sm text-foreground-muted dark:text-foreground-muted-dark">
+          {detail}
+        </Text>
+      ) : null}
       <MaterialIcons name="chevron-right" size={20} color="#71717a" />
     </Pressable>
   );
@@ -39,6 +48,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function LibraryScreen() {
+  const { tracks, artists, albums } = useMyLibrary();
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
       <Stack.Screen options={{ headerShown: false }} />
@@ -63,13 +74,22 @@ export default function LibraryScreen() {
         <CategoryRow
           icon="person"
           label="Artists"
-          onPress={() => router.push("/library/artists")}
+          detail={artists.length > 0 ? `${artists.length}` : undefined}
+          onPress={() => router.push("/library/my-artists")}
         />
         <View className="h-px mx-4 bg-border dark:bg-border-dark" />
         <CategoryRow
           icon="album"
           label="Albums"
-          onPress={() => router.push("/library/albums")}
+          detail={albums.length > 0 ? `${albums.length}` : undefined}
+          onPress={() => router.push("/library/my-albums")}
+        />
+        <View className="h-px mx-4 bg-border dark:bg-border-dark" />
+        <CategoryRow
+          icon="music-note"
+          label="Songs"
+          detail={tracks.length > 0 ? `${tracks.length}` : undefined}
+          onPress={() => router.push("/library/my-tracks")}
         />
       </Section>
 

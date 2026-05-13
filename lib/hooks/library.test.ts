@@ -1,23 +1,29 @@
 // @vitest-environment jsdom
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createQueryWrapper } from "@/test/utils";
 import {
+  addToLibrary,
   getAlbum,
   getArtist,
+  getMyLibrary,
   listAlbums,
   listArtists,
   listTracks,
+  removeFromLibrary,
   searchAlbums,
   searchArtists,
   searchTracks,
 } from "@/lib/api/library";
 import {
+  useAddToLibrary,
   useAlbum,
   useAlbums,
   useArtist,
   useArtists,
+  useMyLibrary,
+  useRemoveFromLibrary,
   useSearch,
   useTracks,
 } from "./library";
@@ -123,5 +129,74 @@ describe("useSearch", () => {
     expect(result.current.artists).toEqual([]);
     expect(result.current.albums).toEqual([]);
     expect(result.current.tracks).toEqual([]);
+  });
+});
+
+const mockLibraryTrack = {
+  trackId: "t1",
+  artistId: "a1",
+  albumId: "alb1",
+  title: "Hey Jude",
+  artist: "The Beatles",
+  album: "Abbey Road",
+  durationMs: 431_000,
+  mimeType: "audio/mpeg",
+  addedAt: "2024-01-01T00:00:00Z",
+};
+
+describe("useMyLibrary", () => {
+  it("returns tracks, derived artists and albums", async () => {
+    vi.mocked(getMyLibrary).mockResolvedValue([mockLibraryTrack]);
+    const { result } = renderHook(() => useMyLibrary(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.tracks.length).toBe(1));
+
+    expect(result.current.tracks[0]).toEqual(mockLibraryTrack);
+    expect(result.current.artists).toEqual([{ id: "a1", name: "The Beatles" }]);
+    expect(result.current.albums).toEqual([
+      { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: null },
+    ]);
+  });
+
+  it("isInLibrary returns true for a track in the library", async () => {
+    vi.mocked(getMyLibrary).mockResolvedValue([mockLibraryTrack]);
+    const { result } = renderHook(() => useMyLibrary(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.tracks.length).toBe(1));
+    expect(result.current.isInLibrary("t1")).toBe(true);
+  });
+
+  it("isInLibrary returns false for a track not in the library", async () => {
+    vi.mocked(getMyLibrary).mockResolvedValue([mockLibraryTrack]);
+    const { result } = renderHook(() => useMyLibrary(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.tracks.length).toBe(1));
+    expect(result.current.isInLibrary("other-track")).toBe(false);
+  });
+
+  it("deduplicates artists and albums when a library has multiple tracks on the same album", async () => {
+    const track2 = { ...mockLibraryTrack, trackId: "t2", title: "Come Together" };
+    vi.mocked(getMyLibrary).mockResolvedValue([mockLibraryTrack, track2]);
+    const { result } = renderHook(() => useMyLibrary(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.tracks.length).toBe(2));
+    expect(result.current.artists).toHaveLength(1);
+    expect(result.current.albums).toHaveLength(1);
+  });
+});
+
+describe("useAddToLibrary", () => {
+  it("calls addToLibrary with the trackId", async () => {
+    vi.mocked(addToLibrary).mockResolvedValue(mockLibraryTrack);
+    vi.mocked(getMyLibrary).mockResolvedValue([]);
+    const { result } = renderHook(() => useAddToLibrary(), { wrapper: createQueryWrapper() });
+    await act(async () => { result.current.mutate("t1"); });
+    expect(addToLibrary).toHaveBeenCalledWith("t1", expect.anything());
+  });
+});
+
+describe("useRemoveFromLibrary", () => {
+  it("calls removeFromLibrary with the trackId", async () => {
+    vi.mocked(removeFromLibrary).mockResolvedValue(undefined);
+    vi.mocked(getMyLibrary).mockResolvedValue([]);
+    const { result } = renderHook(() => useRemoveFromLibrary(), { wrapper: createQueryWrapper() });
+    await act(async () => { result.current.mutate("t1"); });
+    expect(removeFromLibrary).toHaveBeenCalledWith("t1", expect.anything());
   });
 });
