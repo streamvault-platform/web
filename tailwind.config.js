@@ -10,6 +10,15 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      fontSize: {
+        xs:    ["13px", { lineHeight: "18px" }],
+        sm:    ["15px", { lineHeight: "22px" }],
+        base:  ["17px", { lineHeight: "26px" }],
+        lg:    ["19px", { lineHeight: "28px" }],
+        xl:    ["21px", { lineHeight: "30px" }],
+        "2xl": ["26px", { lineHeight: "34px" }],
+        "3xl": ["30px", { lineHeight: "38px" }],
+      },
       colors: {
         // ── Semantic tokens ───────────────────────────────────────────────
         // Change values here to retheme the entire app.

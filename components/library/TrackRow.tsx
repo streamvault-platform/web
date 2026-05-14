@@ -20,9 +20,9 @@ export function TrackRow({ track, onPress }: Props) {
   const isPlayable = isOnline || isDownloaded;
 
   return (
-    <View className={`flex-row items-center px-4 py-3 ${!isPlayable ? "opacity-40" : ""}`}>
+    <View className={`flex-row items-center px-4 ${!isPlayable ? "opacity-40" : ""}`}>
       <Pressable
-        className="flex-1 flex-row items-center active:opacity-60"
+        className="flex-1 flex-row items-center py-3 active:opacity-60"
         onPress={isPlayable ? onPress : undefined}
       >
         {track.trackNumber != null && (

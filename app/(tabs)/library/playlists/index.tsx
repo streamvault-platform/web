@@ -89,7 +89,8 @@ export default function PlaylistsScreen() {
                 onChangeText={setNewName}
                 onSubmitEditing={handleCreate}
                 autoFocus
-                className="flex-1 bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-lg px-3 py-2 text-foreground dark:text-foreground-dark"
+                className="flex-1 bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-lg text-foreground dark:text-foreground-dark"
+                style={{ paddingHorizontal: 12, paddingVertical: 8 }}
               />
               <Pressable
                 onPress={handleCreate}

@@ -13,6 +13,8 @@ export type DownloadEntry = {
   downloadedAt: number;
   fileSizeBytes: number;
   title: string;
+  artistName?: string | null;
+  mimeType?: string;
 };
 
 type DownloadsState = {
@@ -68,6 +70,8 @@ export const useDownloadsStore = create<DownloadsState>()(
                 downloadedAt: Date.now(),
                 fileSizeBytes: downloaded.size,
                 title: track.title,
+                artistName: track.artistName ?? null,
+                mimeType: track.mimeType ?? "audio/mpeg",
               },
             },
             pending: Object.fromEntries(Object.entries(s.pending).filter(([k]) => k !== track.id)),

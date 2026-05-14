@@ -14,17 +14,15 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 export default function PlayerScreen() {
   const [showQueue, setShowQueue] = useState(false);
 
-  const { currentTrack, isPlaying, positionMs, durationMs, pause, resume, seek, next, previous } =
+  const { currentTrack, lastTrack, isPlaying, positionMs, durationMs, pause, resume, seek, next, previous } =
     usePlaybackStore();
   const { hasNext, hasPrevious, tracks, currentIndex } = useQueueStore();
 
   const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
 
-  if (!currentTrack) {
-    router.back();
-    return null;
-  }
+  const displayTrack = currentTrack ?? lastTrack;
+  if (!displayTrack) return null;
 
   const progress = durationMs > 0 ? positionMs / durationMs : 0;
 
@@ -116,20 +114,20 @@ export default function PlayerScreen() {
           className="text-2xl font-bold text-foreground dark:text-foreground-dark"
           numberOfLines={1}
         >
-          {currentTrack.title}
+          {displayTrack.title}
         </Text>
         <Text
           className="text-base text-foreground-muted dark:text-foreground-muted-dark mt-1"
           numberOfLines={1}
         >
-          {currentTrack.artistName ?? "Unknown Artist"}
+          {displayTrack.artistName ?? "Unknown Artist"}
         </Text>
-        {currentTrack.albumTitle && (
+        {displayTrack.albumTitle && (
           <Text
             className="text-sm text-foreground-muted dark:text-foreground-muted-dark mt-0.5"
             numberOfLines={1}
           >
-            {currentTrack.albumTitle}
+            {displayTrack.albumTitle}
           </Text>
         )}
       </View>
@@ -153,7 +151,7 @@ export default function PlayerScreen() {
       <View className="flex-row items-center justify-center gap-12 px-8 mb-4">
         <Pressable
           onPress={previous}
-          style={{ opacity: hasPrevious ? 1 : 0.25 }}
+          style={{ opacity: (hasPrevious || positionMs > 3000) ? 1 : 0.25 }}
           className="p-3 active:opacity-60"
           accessibilityLabel="Previous"
         >

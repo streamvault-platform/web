@@ -166,6 +166,8 @@ describe("useDownloadsStore", () => {
         localPath: "/mock/t1.mp3",
         fileSizeBytes: 2_048_000,
         title: "Hey Jude",
+        artistName: "The Beatles",
+        mimeType: "audio/mpeg",
       });
     });
 

@@ -194,7 +194,7 @@ function Field({
       </Text>
       <TextInput
         className={[
-          "rounded-lg px-4 py-3 text-base",
+          "rounded-lg text-base",
           "bg-surface dark:bg-surface-dark",
           "text-foreground dark:text-foreground-dark",
           "border",
@@ -202,6 +202,7 @@ function Field({
             ? "border-destructive dark:border-destructive-dark"
             : "border-border dark:border-border-dark",
         ].join(" ")}
+        style={{ paddingHorizontal: 16, paddingVertical: 12 }}
         placeholderTextColor="#71717a"
         {...props}
       />

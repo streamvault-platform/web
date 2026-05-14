@@ -299,7 +299,8 @@ export default function PlaylistDetailScreen() {
                 autoFocus
                 placeholder="Playlist name"
                 placeholderTextColor="#a1a1aa"
-                className="border border-border dark:border-border-dark rounded-lg px-3 py-2.5 text-foreground dark:text-foreground-dark mb-4"
+                className="border border-border dark:border-border-dark rounded-lg text-foreground dark:text-foreground-dark mb-4"
+                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
               />
               <View className="flex-row gap-3">
                 <Pressable

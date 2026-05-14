@@ -48,6 +48,7 @@ export default function SearchScreen() {
             ref={inputRef}
             autoFocus
             className="flex-1 text-base text-foreground dark:text-foreground-dark"
+            style={{ paddingVertical: 0 }}
             placeholder="Artists, albums, songs..."
             placeholderTextColor="#71717a"
             value={query}

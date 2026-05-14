@@ -29,15 +29,6 @@ export function MiniPlayer() {
       <SeekBar progress={progress} durationMs={durationMs} onSeek={seek} />
 
       <View className="flex-row items-center px-4 py-3 gap-3">
-        <Pressable
-          onPress={previous}
-          style={{ opacity: hasPrevious ? 1 : 0.3 }}
-          className="p-2 active:opacity-60"
-          accessibilityLabel="Previous"
-        >
-          <IconSymbol name="backward.fill" size={20} color="#6366f1" />
-        </Pressable>
-
         <Pressable className="flex-1 active:opacity-60" onPress={() => router.push("/player")}>
           <Text
             className="font-medium text-foreground dark:text-foreground-dark"
@@ -51,6 +42,15 @@ export function MiniPlayer() {
           >
             {currentTrack.artistName}
           </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={previous}
+          style={{ opacity: (hasPrevious || positionMs > 3000) ? 1 : 0.3 }}
+          className="p-2 active:opacity-60"
+          accessibilityLabel="Previous"
+        >
+          <IconSymbol name="backward.fill" size={20} color="#6366f1" />
         </Pressable>
 
         <Pressable

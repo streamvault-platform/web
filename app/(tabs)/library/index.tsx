@@ -1,10 +1,11 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router, Stack } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useMyLibrary } from "@/lib/hooks/library";
 import { usePlaylists } from "@/lib/hooks/playlists";
+import { useDownloadsStore } from "@/stores/downloads";
 
 function CategoryRow({
   icon,
@@ -51,6 +52,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function LibraryScreen() {
   const { tracks, artists, albums } = useMyLibrary();
   const { data: playlists = [] } = usePlaylists();
+  const { downloaded } = useDownloadsStore();
+  const downloadCount = Object.keys(downloaded).length;
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
@@ -100,6 +103,17 @@ export default function LibraryScreen() {
           detail={playlists.length > 0 ? `${playlists.length}` : undefined}
           onPress={() => router.push("/library/playlists")}
         />
+        {Platform.OS !== "web" && (
+          <>
+            <View className="h-px mx-4 bg-border dark:bg-border-dark" />
+            <CategoryRow
+              icon="download"
+              label="Downloads"
+              detail={downloadCount > 0 ? `${downloadCount} songs` : undefined}
+              onPress={() => router.push("/library/downloads")}
+            />
+          </>
+        )}
       </Section>
 
       <Section title="Browse Songs">

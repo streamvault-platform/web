@@ -20,6 +20,7 @@ import type { Track } from "@/lib/api/library";
 
 type PlaybackState = {
   currentTrack: Track | null;
+  lastTrack: Track | null;
   isPlaying: boolean;
   positionMs: number;
   durationMs: number;
@@ -75,7 +76,7 @@ async function executePlay(
   });
   await audioPlayer.play();
 
-  set({ currentTrack: track, isPlaying: true, positionMs: 0 });
+  set({ currentTrack: track, lastTrack: track, isPlaying: true, positionMs: 0 });
 
   if (accessToken) {
     connectPlaybackWs(serverUrl, accessToken);
@@ -91,18 +92,22 @@ async function executePlay(
 export const usePlaybackStore = create<PlaybackState>()(
   persist(
     (set, get) => {
-      if (Platform.OS === "web") {
-        audioPlayer.setOnStatusUpdate((positionMs, durationMs, didFinish) => {
-          set({ positionMs, durationMs });
-          if (didFinish) {
-            clearHeartbeat();
+      audioPlayer.setOnStatusUpdate((positionMs, durationMs, didFinish) => {
+        set({ positionMs, durationMs });
+        if (didFinish) {
+          clearHeartbeat();
+          const nextTrack = useQueueStore.getState().next();
+          if (nextTrack) {
+            executePlay(nextTrack, get, set);
+          } else {
             set({ isPlaying: false });
           }
-        });
-      }
+        }
+      });
 
       return {
         currentTrack: null,
+        lastTrack: null,
         isPlaying: false,
         positionMs: 0,
         durationMs: 0,
@@ -189,7 +194,7 @@ export const usePlaybackStore = create<PlaybackState>()(
     {
       name: "streamvault-playback",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ currentTrack: s.currentTrack, positionMs: s.positionMs, durationMs: s.durationMs }),
+      partialize: (s) => ({ currentTrack: s.currentTrack, lastTrack: s.lastTrack, positionMs: s.positionMs, durationMs: s.durationMs }),
       merge: (persisted, current) => ({ ...current, ...(persisted as object), isPlaying: false }),
     }
   )
