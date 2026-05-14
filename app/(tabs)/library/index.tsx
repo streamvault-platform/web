@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useMyLibrary } from "@/lib/hooks/library";
+import { usePlaylists } from "@/lib/hooks/playlists";
 
 function CategoryRow({
   icon,
@@ -49,10 +50,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function LibraryScreen() {
   const { tracks, artists, albums } = useMyLibrary();
+  const { data: playlists = [] } = usePlaylists();
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, headerBackTitle: "Home" }} />
 
       <View className="px-4 pt-4 pb-4">
         <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark mb-4">
@@ -90,6 +92,13 @@ export default function LibraryScreen() {
           label="Songs"
           detail={tracks.length > 0 ? `${tracks.length}` : undefined}
           onPress={() => router.push("/library/my-tracks")}
+        />
+        <View className="h-px mx-4 bg-border dark:bg-border-dark" />
+        <CategoryRow
+          icon="queue-music"
+          label="Playlists"
+          detail={playlists.length > 0 ? `${playlists.length}` : undefined}
+          onPress={() => router.push("/library/playlists")}
         />
       </Section>
 

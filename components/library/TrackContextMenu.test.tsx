@@ -33,6 +33,12 @@ vi.mock("@/lib/hooks/library", () => ({
   useRemoveFromLibrary: vi.fn(() => ({ mutate: mockRemoveFromLibraryMutate })),
 }));
 
+vi.mock("@/lib/hooks/playlists", () => ({
+  usePlaylists: vi.fn(() => ({ data: [] })),
+  useAddTrackToPlaylist: vi.fn(() => ({ mutate: vi.fn() })),
+  useRemoveTrackFromPlaylist: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
 vi.mock("@/components/ui/icon-symbol", () => ({
   IconSymbol: ({ name }: { name: string }) => <div data-testid={`icon-${name}`}>{name}</div>,
 }));

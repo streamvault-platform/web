@@ -12,6 +12,12 @@ vi.mock("@/stores/queue", () => ({
   useQueueStore: vi.fn(() => ({ playNext: vi.fn(), addToQueue: vi.fn() })),
 }));
 
+vi.mock("@/lib/hooks/playlists", () => ({
+  usePlaylists: vi.fn(() => ({ data: [] })),
+  useAddTrackToPlaylist: vi.fn(() => ({ mutate: vi.fn() })),
+  useRemoveTrackFromPlaylist: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
 vi.mock("@/hooks/use-online", () => ({
   useIsOnline: vi.fn(() => true),
 }));
