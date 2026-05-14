@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { File } from "expo-file-system";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -57,9 +58,10 @@ async function executePlay(
   let url: string;
   let headers: Record<string, string> = {};
 
-  if (localEntry) {
+  if (localEntry && new File(localEntry.localPath).exists) {
     url = localEntry.localPath;
   } else {
+    if (localEntry) useDownloadsStore.getState().remove(track.id);
     const tokenParam = isWeb && accessToken ? `?token=${encodeURIComponent(accessToken)}` : "";
     url = `${serverUrl}/api/stream/${track.id}${tokenParam}`;
     if (!isWeb && accessToken) headers = { Authorization: `Bearer ${accessToken}` };

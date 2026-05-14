@@ -26,6 +26,7 @@ export function disconnectPlaybackWs(): void {
   ws = null;
 }
 
+//TODO: type the event object
 export function sendPlaybackEvent(event: object): void {
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(event));
