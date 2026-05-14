@@ -1,10 +1,14 @@
 import TrackPlayer, { PlayerCommand } from "@rntp/player";
 
+import { backgroundEventHandler } from "./trackPlayerService";
+
 let initialized = false;
 
 export async function setupAudioPlayer(): Promise<void> {
   if (initialized) return;
   initialized = true;
+
+  TrackPlayer.registerBackgroundEventHandler(() => backgroundEventHandler);
 
   TrackPlayer.setupPlayer({
     contentType: "music",
@@ -17,6 +21,8 @@ export async function setupAudioPlayer(): Promise<void> {
       PlayerCommand.PlayPause,
       PlayerCommand.Seek,
       PlayerCommand.Stop,
+      PlayerCommand.Next,
+      PlayerCommand.Previous,
     ],
   });
 }

@@ -29,11 +29,11 @@ function entryToTrack(trackId: string, entry: DownloadEntry): Track {
 }
 
 export default function DownloadsScreen() {
-  if (Platform.OS === "web") return <Redirect href="/library" />;
-
   const { downloaded } = useDownloadsStore();
   const { playQueue } = usePlaybackStore();
   const isDark = useColorScheme() === "dark";
+
+  if (Platform.OS === "web") return <Redirect href="/library" />;
 
   const entries = Object.entries(downloaded).sort(
     ([, a], [, b]) => b.downloadedAt - a.downloadedAt

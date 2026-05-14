@@ -86,7 +86,7 @@ export function TrackContextMenu({ track, playlistId }: Props) {
           if (i === 1) handlePlayNext();
           else if (i === 2) handleAddToQueue();
           else if (i === 3) handleLibrary();
-          else if (i === 4) { playlistId ? handleRemoveFromPlaylist() : setPlaylistPickerVisible(true); }
+          else if (i === 4) { if (playlistId) handleRemoveFromPlaylist(); else setPlaylistPickerVisible(true); }
           else if (i === 5) handleDownload();
         }
       );

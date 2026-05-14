@@ -2,6 +2,10 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { useIsOnline } from "@/hooks/use-online";
+import type { Track } from "@/lib/api/library";
+import { TrackRow } from "./TrackRow";
+
 vi.mock("@/lib/hooks/library", () => ({
   useMyLibrary: vi.fn(() => ({ isInLibrary: () => false, tracks: [], artists: [], albums: [] })),
   useAddToLibrary: vi.fn(() => ({ mutate: vi.fn() })),
@@ -21,10 +25,6 @@ vi.mock("@/lib/hooks/playlists", () => ({
 vi.mock("@/hooks/use-online", () => ({
   useIsOnline: vi.fn(() => true),
 }));
-
-import { useIsOnline } from "@/hooks/use-online";
-import { TrackRow } from "./TrackRow";
-import type { Track } from "@/lib/api/library";
 
 const track: Track = {
   id: "t1",

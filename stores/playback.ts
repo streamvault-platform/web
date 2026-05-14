@@ -78,6 +78,18 @@ async function executePlay(
 
   set({ currentTrack: track, lastTrack: track, isPlaying: true, positionMs: 0 });
 
+  if (Platform.OS === "web" && "mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.title,
+      artist: track.artistName ?? undefined,
+      album: track.albumTitle ?? undefined,
+    });
+    navigator.mediaSession.setActionHandler("nexttrack", () => usePlaybackStore.getState().next());
+    navigator.mediaSession.setActionHandler("previoustrack", () => usePlaybackStore.getState().previous());
+    navigator.mediaSession.setActionHandler("pause", () => usePlaybackStore.getState().pause());
+    navigator.mediaSession.setActionHandler("play", () => usePlaybackStore.getState().resume());
+  }
+
   if (accessToken) {
     connectPlaybackWs(serverUrl, accessToken);
     sendPlaybackEvent({ type: "PLAY", trackId: track.id, positionMs: 0 });
