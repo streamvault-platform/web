@@ -10,14 +10,21 @@ type StatusCallback = (positionMs: number, durationMs: number, didFinish: boolea
 class AudioPlayer {
   private audio: HTMLAudioElement | null = null;
   private onStatus: StatusCallback | null = null;
+  private volume: number = 1;
 
   setOnStatusUpdate(cb: StatusCallback): void {
     this.onStatus = cb;
   }
 
+  setVolume(vol: number): void {
+    this.volume = Math.max(0, Math.min(1, vol));
+    if (this.audio) this.audio.volume = this.volume;
+  }
+
   async load(url: string, _headers: Record<string, string>, _meta?: TrackMeta): Promise<void> {
     await this.unload();
     const audio = new Audio(url);
+    audio.volume = this.volume;
     audio.ontimeupdate = () => {
       this.onStatus?.(
         Math.round(audio.currentTime * 1000),

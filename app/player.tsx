@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SeekBar } from "@/components/player/SeekBar";
+import { VolumeSlider } from "@/components/player/VolumeSlider";
 import { formatDuration } from "@/lib/utils/format";
 import { usePlaybackStore } from "@/stores/playback";
 import { useQueueStore } from "@/stores/queue";
@@ -14,7 +15,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 export default function PlayerScreen() {
   const [showQueue, setShowQueue] = useState(false);
 
-  const { currentTrack, lastTrack, isPlaying, positionMs, durationMs, pause, resume, seek, next, previous } =
+  const { currentTrack, lastTrack, isPlaying, positionMs, durationMs, volume, pause, resume, seek, setVolume, next, previous } =
     usePlaybackStore();
   const { hasNext, hasPrevious, tracks, currentIndex } = useQueueStore();
 
@@ -145,6 +146,11 @@ export default function PlayerScreen() {
             {formatDuration(durationMs || null)}
           </Text>
         </View>
+      </View>
+
+      {/* Volume */}
+      <View className="mb-6">
+        <VolumeSlider volume={volume} onVolumeChange={setVolume} />
       </View>
 
       {/* Controls */}

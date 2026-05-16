@@ -39,6 +39,13 @@ export const useTracks = (albumId?: string) =>
     queryFn: () => listTracks(albumId),
   });
 
+export const useTracksByArtist = (artistId?: string) =>
+  useQuery({
+    queryKey: ["tracks", { artistId }],
+    queryFn: () => listTracks(undefined, artistId),
+    enabled: !!artistId,
+  });
+
 export const useTrack = (id: string) =>
   useQuery({ queryKey: ["tracks", id], queryFn: () => getTrack(id), enabled: !!id });
 

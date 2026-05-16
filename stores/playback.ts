@@ -24,11 +24,13 @@ type PlaybackState = {
   isPlaying: boolean;
   positionMs: number;
   durationMs: number;
+  volume: number;
   play: (track: Track) => Promise<void>;
   playQueue: (tracks: Track[], startIndex: number) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   seek: (ms: number) => Promise<void>;
+  setVolume: (vol: number) => void;
   stop: () => Promise<void>;
   next: () => Promise<void>;
   previous: () => Promise<void>;
@@ -123,6 +125,7 @@ export const usePlaybackStore = create<PlaybackState>()(
         isPlaying: false,
         positionMs: 0,
         durationMs: 0,
+        volume: 1,
 
         play: async (track) => {
           useQueueStore.getState().setQueue([track], 0);
@@ -167,6 +170,11 @@ export const usePlaybackStore = create<PlaybackState>()(
           set({ positionMs: ms });
         },
 
+        setVolume: (vol) => {
+          audioPlayer.setVolume(vol);
+          set({ volume: vol });
+        },
+
         stop: async () => {
           clearHeartbeat();
           disconnectPlaybackWs();
@@ -206,7 +214,7 @@ export const usePlaybackStore = create<PlaybackState>()(
     {
       name: "streamvault-playback",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ currentTrack: s.currentTrack, lastTrack: s.lastTrack, positionMs: s.positionMs, durationMs: s.durationMs }),
+      partialize: (s) => ({ currentTrack: s.currentTrack, lastTrack: s.lastTrack, positionMs: s.positionMs, durationMs: s.durationMs, volume: s.volume }),
       merge: (persisted, current) => ({ ...current, ...(persisted as object), isPlaying: false }),
     }
   )

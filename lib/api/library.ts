@@ -44,9 +44,10 @@ export const listAlbums = (artistId?: string, page = 0, size = 200): Promise<Alb
 export const getAlbum = (id: string): Promise<Album> =>
   apiFetch(`/library/albums/${id}`);
 
-export const listTracks = (albumId?: string, page = 0, size = 200): Promise<Track[]> => {
+export const listTracks = (albumId?: string, artistId?: string, page = 0, size = 200): Promise<Track[]> => {
   const params = new URLSearchParams({ page: String(page), size: String(size) });
   if (albumId) params.set("albumId", albumId);
+  if (artistId) params.set("artistId", artistId);
   return apiFetch(`/library/tracks?${params}`);
 };
 
