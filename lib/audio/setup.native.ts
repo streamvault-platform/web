@@ -1,14 +1,10 @@
 import TrackPlayer, { PlayerCommand } from "@rntp/player";
 
-import { backgroundEventHandler } from "./trackPlayerService";
-
 let initialized = false;
 
 export async function setupAudioPlayer(): Promise<void> {
   if (initialized) return;
   initialized = true;
-
-  TrackPlayer.registerBackgroundEventHandler(() => backgroundEventHandler);
 
   TrackPlayer.setupPlayer({
     contentType: "music",
@@ -20,9 +16,12 @@ export async function setupAudioPlayer(): Promise<void> {
     capabilities: [
       PlayerCommand.PlayPause,
       PlayerCommand.Seek,
-      PlayerCommand.Stop,
       PlayerCommand.Next,
       PlayerCommand.Previous,
     ],
+    // Route remote control events to JS so our Zustand queue handles them.
+    // Default ('native') would let RNTP's internal queue handle Next/Previous,
+    // which doesn't know about our queue.
+    handling: "js",
   });
 }

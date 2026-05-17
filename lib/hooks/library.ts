@@ -73,7 +73,7 @@ export const useSearch = (q: string) => {
 export const useMyLibrary = () => {
   const { myTracks: cached, setMyTracks } = useLibraryStore();
 
-  const { data } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: ["library", "my"],
     queryFn: getMyLibrary,
     placeholderData: cached,
@@ -107,6 +107,7 @@ export const useMyLibrary = () => {
     tracks,
     artists: [...artistMap.values()],
     albums: [...albumMap.values()],
+    isPending,
     isInLibrary: (trackId: string) => libraryIds.has(trackId),
   };
 };

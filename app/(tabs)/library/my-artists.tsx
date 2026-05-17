@@ -6,14 +6,13 @@ import { ArtistRow } from "@/components/library/ArtistRow";
 import { useMyLibrary } from "@/lib/hooks/library";
 
 export default function MyArtistsScreen() {
-  const { artists, tracks } = useMyLibrary();
-  const isLoading = tracks.length === 0 && artists.length === 0;
+  const { artists, isPending } = useMyLibrary();
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["bottom"]}>
       <Stack.Screen options={{ title: "My Artists" }} />
 
-      {isLoading ? (
+      {isPending ? (
         <ActivityIndicator className="flex-1" />
       ) : (
         <FlatList

@@ -148,10 +148,12 @@ export default function PlayerScreen() {
         </View>
       </View>
 
-      {/* Volume */}
-      <View className="mb-6">
-        <VolumeSlider volume={volume} onVolumeChange={setVolume} />
-      </View>
+      {/* Volume slider — web only; on native, hardware volume buttons control output */}
+      {Platform.OS === "web" && (
+        <View className="mb-6">
+          <VolumeSlider volume={volume} onVolumeChange={setVolume} />
+        </View>
+      )}
 
       {/* Controls */}
       <View className="flex-row items-center justify-center gap-12 px-8 mb-4">

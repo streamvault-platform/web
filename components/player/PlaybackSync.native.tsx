@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { useIsPlaying, useProgress, usePlaybackState, PlaybackState } from "@rntp/player";
+import { Event, useIsPlaying, useProgress, usePlaybackState, PlaybackState } from "@rntp/player";
+
+import { subscribeRntpEvent } from "@/lib/audio/rntp-events";
 
 import { usePlaybackStore } from "@/stores/playback";
 import { useQueueStore } from "@/stores/queue";
@@ -11,6 +13,7 @@ export function PlaybackSync() {
   const { position, duration } = useProgress(0.25);
   const playbackState = usePlaybackState();
   const next = usePlaybackStore((s) => s.next);
+  const previous = usePlaybackStore((s) => s.previous);
   const stop = usePlaybackStore((s) => s.stop);
 
   useEffect(() => {
@@ -30,6 +33,16 @@ export function PlaybackSync() {
       }
     }
   }, [playbackState, next, stop]);
+
+
+  useEffect(() => {
+    const nextSub = subscribeRntpEvent(Event.RemoteNext, () => { next(); });
+    const prevSub = subscribeRntpEvent(Event.RemotePrevious, () => { previous(); });
+    return () => {
+      nextSub.remove();
+      prevSub.remove();
+    };
+  }, [next, previous]);
 
   return null;
 }

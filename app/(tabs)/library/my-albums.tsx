@@ -6,14 +6,13 @@ import { AlbumRow } from "@/components/library/AlbumRow";
 import { useMyLibrary } from "@/lib/hooks/library";
 
 export default function MyAlbumsScreen() {
-  const { albums, tracks } = useMyLibrary();
-  const isLoading = tracks.length === 0 && albums.length === 0;
+  const { albums, isPending } = useMyLibrary();
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["bottom"]}>
       <Stack.Screen options={{ title: "My Albums" }} />
 
-      {isLoading ? (
+      {isPending ? (
         <ActivityIndicator className="flex-1" />
       ) : (
         <FlatList

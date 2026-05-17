@@ -35,6 +35,10 @@ class NativeAudioPlayer {
     TrackPlayer.seekTo(positionMs / 1000);
   }
 
+  // Volume is controlled by hardware buttons on native; RNTP plays at full gain.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setVolume(_vol: number): void {}
+
   stop(): void {
     TrackPlayer.stop();
   }
