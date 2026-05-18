@@ -4,6 +4,10 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    // React Native / Expo global — not defined in the Vitest/Node environment
+    __DEV__: false,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),

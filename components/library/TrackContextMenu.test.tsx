@@ -84,6 +84,7 @@ describe("TrackContextMenu", () => {
     } as ReturnType<typeof useDownloadsStore>);
     vi.mocked(useMyLibrary).mockReturnValue({
       isInLibrary: () => false,
+      isPending: false,
       tracks: [],
       artists: [],
       albums: [],
@@ -155,6 +156,7 @@ describe("TrackContextMenu", () => {
     it("shows 'Add to Library' when track is not in library", () => {
       vi.mocked(useMyLibrary).mockReturnValue({
         isInLibrary: () => false,
+        isPending: false,
         tracks: [],
         artists: [],
         albums: [],
@@ -167,6 +169,7 @@ describe("TrackContextMenu", () => {
     it("shows 'Remove from Library' when track is in library", () => {
       vi.mocked(useMyLibrary).mockReturnValue({
         isInLibrary: () => true,
+        isPending: false,
         tracks: [],
         artists: [],
         albums: [],
@@ -179,6 +182,7 @@ describe("TrackContextMenu", () => {
     it("calls addToLibrary.mutate when pressing Add to Library", () => {
       vi.mocked(useMyLibrary).mockReturnValue({
         isInLibrary: () => false,
+        isPending: false,
         tracks: [],
         artists: [],
         albums: [],
@@ -192,6 +196,7 @@ describe("TrackContextMenu", () => {
     it("calls removeFromLibrary.mutate when pressing Remove from Library", () => {
       vi.mocked(useMyLibrary).mockReturnValue({
         isInLibrary: () => true,
+        isPending: false,
         tracks: [],
         artists: [],
         albums: [],
