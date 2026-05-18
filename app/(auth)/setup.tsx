@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthApiError, createAdmin, fetchSetupStatus, login } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth";
-import { useSettingsStore } from "@/stores/settings";
+import { BUILT_IN_SERVER_URL, isServerUrlLocked, useSettingsStore } from "@/stores/settings";
 
 type Step =
   | { kind: "url" }
@@ -26,11 +26,26 @@ export default function SetupScreen() {
   const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState<Step>({ kind: "url" });
-  const [url, setUrl] = useState(savedUrl);
+  const [url, setUrl] = useState(isServerUrlLocked ? BUILT_IN_SERVER_URL : savedUrl);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isServerUrlLocked) return;
+    setLoading(true);
+    fetchSetupStatus(BUILT_IN_SERVER_URL)
+      .then((status) =>
+        setStep({
+          kind: "credentials",
+          mode: status.configured ? "login" : "create-admin",
+          serverUrl: BUILT_IN_SERVER_URL,
+        })
+      )
+      .catch(() => setError("Could not connect to server."))
+      .finally(() => setLoading(false));
+  }, []);
 
   async function handleConnect() {
     const trimmed = url.trim().replace(/\/+$/, "");
@@ -136,14 +151,16 @@ export default function SetupScreen() {
             </>
           ) : (
             <>
-              <Pressable
-                onPress={() => { setStep({ kind: "url" }); setError(null); }}
-                className="mb-6"
-              >
-                <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
-                  ← {step.serverUrl}
-                </Text>
-              </Pressable>
+              {!isServerUrlLocked && (
+                <Pressable
+                  onPress={() => { setStep({ kind: "url" }); setError(null); }}
+                  className="mb-6"
+                >
+                  <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
+                    ← {step.serverUrl}
+                  </Text>
+                </Pressable>
+              )}
 
               <Text className="text-xl font-semibold text-foreground dark:text-foreground-dark mb-1">
                 {step.mode === "create-admin" ? "Create admin account" : "Sign in"}

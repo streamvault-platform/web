@@ -45,4 +45,5 @@ app-example
 /android
 
 # local planning docs
+todos/
 PLAN.md

@@ -1,6 +1,10 @@
 node_modules
+dist
 .expo
 .git
 .vscode
 .claude
+ios
+android
+todos
 *.md
