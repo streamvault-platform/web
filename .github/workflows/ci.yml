@@ -81,7 +81,7 @@ jobs:
           CI: "1"
           EXPO_NO_TELEMETRY: "1"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: dist/
@@ -136,6 +136,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          target: ci
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/web:${{ steps.tag.outputs.image_tag }}

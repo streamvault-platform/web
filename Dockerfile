@@ -11,10 +11,15 @@ ARG STREAMVAULT_PUBLIC_API_URL=__STREAMVAULT_API_URL__
 ENV EXPO_PUBLIC_API_URL=${STREAMVAULT_PUBLIC_API_URL}
 RUN npx expo export --platform web
 
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
+FROM nginx:alpine AS base
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
+
+FROM base AS ci
+COPY dist/ /usr/share/nginx/html
+
+FROM base
+COPY --from=builder /app/dist /usr/share/nginx/html
