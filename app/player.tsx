@@ -138,14 +138,9 @@ export default function PlayerScreen() {
         <View className="mb-2">
           <SeekBar progress={progress} durationMs={durationMs} onSeek={seek} thick />
         </View>
-        <View className="flex-row justify-between">
-          <Text className="text-xs text-foreground-muted dark:text-foreground-muted-dark">
-            {formatDuration(positionMs)}
-          </Text>
-          <Text className="text-xs text-foreground-muted dark:text-foreground-muted-dark">
-            {formatDuration(durationMs || null)}
-          </Text>
-        </View>
+        <Text className="text-xs text-foreground-muted dark:text-foreground-muted-dark text-center" style={{ fontVariant: ["tabular-nums"] }}>
+          {formatDuration(positionMs)} / {formatDuration(durationMs || null)}
+        </Text>
       </View>
 
       {/* Volume slider — web only; on native, hardware volume buttons control output */}

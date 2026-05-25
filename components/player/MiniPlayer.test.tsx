@@ -9,6 +9,7 @@ const mockResume = vi.fn();
 const mockSeek = vi.fn();
 const mockNext = vi.fn();
 const mockPrevious = vi.fn();
+const mockSetVolume = vi.fn();
 
 vi.mock("@/stores/playback", () => ({
   usePlaybackStore: vi.fn(),
@@ -38,6 +39,10 @@ vi.mock("@/components/ui/icon-symbol", () => ({
 
 vi.mock("@/components/player/SeekBar", () => ({
   SeekBar: () => <div data-testid="seek-bar" />,
+}));
+
+vi.mock("@/components/player/VolumeSlider", () => ({
+  VolumeSlider: () => <div data-testid="volume-slider" />,
 }));
 
 // ─── Dynamic imports ──────────────────────────────────────────────────────────
@@ -73,9 +78,11 @@ function setupStore(
     isPlaying: false,
     positionMs: 0,
     durationMs: 431_000,
+    volume: 0.8,
     pause: mockPause,
     resume: mockResume,
     seek: mockSeek,
+    setVolume: mockSetVolume,
     next: mockNext,
     previous: mockPrevious,
     ...playbackOverrides,
@@ -222,5 +229,19 @@ describe("MiniPlayer", () => {
     render(<MiniPlayer />);
     const btn = screen.getByLabelText("Next").closest("[style]");
     expect(btn?.getAttribute("style")).toContain("opacity: 1");
+  });
+
+  // ── Timestamp ─────────────────────────────────────────────────────────────
+
+  it("shows elapsed / total timestamp", () => {
+    setupStore({ positionMs: 65_000, durationMs: 214_000 });
+    render(<MiniPlayer />);
+    expect(screen.getByText("1:05 / 3:34")).toBeInTheDocument();
+  });
+
+  it("shows 0:00 elapsed when at start", () => {
+    setupStore({ positionMs: 0, durationMs: 214_000 });
+    render(<MiniPlayer />);
+    expect(screen.getByText("0:00 / 3:34")).toBeInTheDocument();
   });
 });
