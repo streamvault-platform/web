@@ -5,11 +5,16 @@ import { create } from "zustand";
 const KEY_ACCESS = "sv_access_token";
 const KEY_REFRESH = "sv_refresh_token";
 
-function decodeJwtSub(token: string): string | null {
+type JwtClaims = {
+  sub?: string;
+  upn?: string;
+  groups?: string[];
+};
+
+function decodeJwt(token: string): JwtClaims | null {
   try {
     const payload = token.split(".")[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    return typeof decoded.sub === "string" ? decoded.sub : null;
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
   } catch {
     return null;
   }
@@ -39,16 +44,27 @@ type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
   username: string | null;
+  role: string | null;
   isAuthenticated: boolean;
   loadTokens: () => Promise<void>;
   setTokens: (access: string, refresh: string) => Promise<void>;
   clearTokens: () => Promise<void>;
 };
 
+function claimsFromToken(token: string | null) {
+  if (!token) return { username: null, role: null };
+  const claims = decodeJwt(token);
+  return {
+    username: claims?.upn ?? claims?.sub ?? null,
+    role: claims?.groups?.[0] ?? null,
+  };
+}
+
 export const useAuthStore = create<AuthState>()((set) => ({
   accessToken: null,
   refreshToken: null,
   username: null,
+  role: null,
   isAuthenticated: false,
 
   loadTokens: async () => {
@@ -56,7 +72,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       storage.get(KEY_ACCESS),
       storage.get(KEY_REFRESH),
     ]);
-    set({ accessToken: access, refreshToken: refresh, username: access ? decodeJwtSub(access) : null, isAuthenticated: !!access });
+    set({ accessToken: access, refreshToken: refresh, ...claimsFromToken(access), isAuthenticated: !!access });
   },
 
   setTokens: async (access, refresh) => {
@@ -64,7 +80,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       storage.set(KEY_ACCESS, access),
       storage.set(KEY_REFRESH, refresh),
     ]);
-    set({ accessToken: access, refreshToken: refresh, username: decodeJwtSub(access), isAuthenticated: true });
+    set({ accessToken: access, refreshToken: refresh, ...claimsFromToken(access), isAuthenticated: true });
   },
 
   clearTokens: async () => {
@@ -72,6 +88,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
       storage.delete(KEY_ACCESS),
       storage.delete(KEY_REFRESH),
     ]);
-    set({ accessToken: null, refreshToken: null, username: null, isAuthenticated: false });
+    set({ accessToken: null, refreshToken: null, username: null, role: null, isAuthenticated: false });
   },
 }));
