@@ -1,9 +1,11 @@
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, usePathname } from "expo-router";
 
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SeekBar } from "@/components/player/SeekBar";
+import { VolumeSlider } from "@/components/player/VolumeSlider";
+import { formatDuration } from "@/lib/utils/format";
 import { usePlaybackStore } from "@/stores/playback";
 import { useQueueStore } from "@/stores/queue";
 
@@ -12,7 +14,7 @@ const TAB_BAR_HEIGHT = 49;
 export function MiniPlayer() {
   const { bottom } = useSafeAreaInsets();
   const pathname = usePathname();
-  const { currentTrack, isPlaying, positionMs, durationMs, pause, resume, seek, next, previous } =
+  const { currentTrack, isPlaying, positionMs, durationMs, volume, pause, resume, seek, setVolume, next, previous } =
     usePlaybackStore();
   const { hasNext, hasPrevious } = useQueueStore();
 
@@ -43,6 +45,17 @@ export function MiniPlayer() {
             {currentTrack.artistName}
           </Text>
         </Pressable>
+
+        <Text
+          className="text-xs text-foreground-muted dark:text-foreground-muted-dark"
+          style={{ fontVariant: ["tabular-nums"] }}
+        >
+          {formatDuration(positionMs)} / {formatDuration(durationMs || null)}
+        </Text>
+
+        {Platform.OS === "web" && (
+          <VolumeSlider volume={volume} onVolumeChange={setVolume} compact />
+        )}
 
         <Pressable
           onPress={previous}

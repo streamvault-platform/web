@@ -31,8 +31,24 @@ describe("SeekBar", () => {
 
   it("does not call onSeek when durationMs is 0", () => {
     const onSeek = vi.fn();
-    render(<SeekBar progress={0} durationMs={0} onSeek={onSeek} />);
-    fireEvent.click(document.querySelector('[style*="position: absolute"]')!);
+    const { container } = render(<SeekBar progress={0} durationMs={0} onSeek={onSeek} />);
+    fireEvent.mouseDown(container.firstChild!);
+    fireEvent.mouseUp(container.firstChild!);
     expect(onSeek).not.toHaveBeenCalled();
+  });
+
+  it("does not render a thumb when not thick and not dragging", () => {
+    const { container } = render(
+      <SeekBar progress={0.5} durationMs={100_000} onSeek={vi.fn()} />
+    );
+    const absolutes = container.querySelectorAll("[style*='position: absolute']");
+    expect(absolutes).toHaveLength(0);
+  });
+
+  it("does not render a time tooltip when not dragging", () => {
+    const { queryByText } = render(
+      <SeekBar progress={0.5} durationMs={100_000} onSeek={vi.fn()} />
+    );
+    expect(queryByText(/^\d+:\d+$/)).toBeNull();
   });
 });
