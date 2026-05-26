@@ -32,4 +32,9 @@ describe("AlbumRow", () => {
     fireEvent.click(screen.getByText("Abbey Road"));
     expect(onPress).toHaveBeenCalledOnce();
   });
+
+  it("renders the cover image slot", () => {
+    render(<AlbumRow album={album} onPress={() => {}} />);
+    expect(screen.getByTestId("cover-image")).toBeInTheDocument();
+  });
 });
