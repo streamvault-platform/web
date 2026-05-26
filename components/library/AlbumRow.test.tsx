@@ -2,9 +2,13 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@/components/library/CoverImage", () => ({
+  CoverImage: () => <div data-testid="cover-image" />,
+}));
+
 import { AlbumRow } from "./AlbumRow";
 
-const album = { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: 1969 };
+const album = { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: 1969, coverUrl: null };
 
 describe("AlbumRow", () => {
   it("renders the album title", () => {

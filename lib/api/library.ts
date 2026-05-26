@@ -11,6 +11,7 @@ export type Album = {
   artistId: string | null;
   artistName: string | null;
   year: number | null;
+  coverUrl: string | null;
 };
 
 export type Track = {

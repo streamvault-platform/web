@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { CoverImage } from "@/components/library/CoverImage";
 import { TrackRow } from "@/components/library/TrackRow";
 import { useAlbum, useTracks } from "@/lib/hooks/library";
 import { usePlaybackStore } from "@/stores/playback";
@@ -36,10 +37,19 @@ export default function AlbumTracksScreen() {
           keyExtractor={(t) => t.id}
           ListHeaderComponent={
             album ? (
-              <View className="px-4 py-3 border-b border-border dark:border-border-dark">
-                <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
-                  {[album.artistName, album.year].filter(Boolean).join(" · ")}
-                </Text>
+              <View className="px-4 py-4 flex-row items-center gap-4 border-b border-border dark:border-border-dark">
+                <CoverImage coverUrl={album.coverUrl} size={72} />
+                <View className="flex-1">
+                  <Text
+                    className="text-base font-semibold text-foreground dark:text-foreground-dark"
+                    numberOfLines={1}
+                  >
+                    {album.title}
+                  </Text>
+                  <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark mt-0.5">
+                    {[album.artistName, album.year].filter(Boolean).join(" · ")}
+                  </Text>
+                </View>
               </View>
             ) : null
           }

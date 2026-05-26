@@ -1,6 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, Text, View } from "react-native";
 
+import { CoverImage } from "@/components/library/CoverImage";
 import type { Album } from "@/lib/api/library";
 
 type Props = {
@@ -12,8 +13,9 @@ export function AlbumRow({ album, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center px-4 py-3.5 active:opacity-60"
+      className="flex-row items-center px-4 py-3 gap-3 active:opacity-60"
     >
+      <CoverImage coverUrl={album.coverUrl} size={44} />
       <View className="flex-1">
         <Text
           className="text-base text-foreground dark:text-foreground-dark"
