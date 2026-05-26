@@ -98,6 +98,7 @@ export const useMyLibrary = () => {
         artistId: t.artistId,
         artistName: t.artist,
         year: null,
+        coverUrl: null,
       });
   }
 

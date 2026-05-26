@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FlatList, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CoverImage } from "@/components/library/CoverImage";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SeekBar } from "@/components/player/SeekBar";
 import { VolumeSlider } from "@/components/player/VolumeSlider";
@@ -100,11 +101,11 @@ export default function PlayerScreen() {
             }
           />
         ) : (
-          <View
-            style={{ flex: 1, borderRadius: 16 }}
-            className="bg-surface dark:bg-surface-dark items-center justify-center"
-          >
-            <IconSymbol name="music.note" size={96} color="#6366f1" />
+          <View style={{ flex: 1 }} className="items-center justify-center">
+            <CoverImage
+              coverUrl={displayTrack.albumId ? `/api/albums/${displayTrack.albumId}/cover` : null}
+              size={240}
+            />
           </View>
         )}
       </View>

@@ -2,9 +2,13 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@/components/library/CoverImage", () => ({
+  CoverImage: () => <div data-testid="cover-image" />,
+}));
+
 import { AlbumRow } from "./AlbumRow";
 
-const album = { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: 1969 };
+const album = { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: 1969, coverUrl: null };
 
 describe("AlbumRow", () => {
   it("renders the album title", () => {
@@ -27,5 +31,10 @@ describe("AlbumRow", () => {
     render(<AlbumRow album={album} onPress={onPress} />);
     fireEvent.click(screen.getByText("Abbey Road"));
     expect(onPress).toHaveBeenCalledOnce();
+  });
+
+  it("renders the cover image slot", () => {
+    render(<AlbumRow album={album} onPress={() => {}} />);
+    expect(screen.getByTestId("cover-image")).toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, usePathname } from "expo-router";
 
+import { CoverImage } from "@/components/library/CoverImage";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SeekBar } from "@/components/player/SeekBar";
 import { VolumeSlider } from "@/components/player/VolumeSlider";
@@ -31,6 +32,12 @@ export function MiniPlayer() {
       <SeekBar progress={progress} durationMs={durationMs} onSeek={seek} />
 
       <View className="flex-row items-center px-4 py-3 gap-3">
+        <Pressable onPress={() => router.push("/player")} className="active:opacity-60">
+          <CoverImage
+            coverUrl={currentTrack.albumId ? `/api/albums/${currentTrack.albumId}/cover` : null}
+            size={40}
+          />
+        </Pressable>
         <Pressable className="flex-1 active:opacity-60" onPress={() => router.push("/player")}>
           <Text
             className="font-medium text-foreground dark:text-foreground-dark"

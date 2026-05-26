@@ -37,6 +37,10 @@ vi.mock("@/components/ui/icon-symbol", () => ({
   ),
 }));
 
+vi.mock("@/components/library/CoverImage", () => ({
+  CoverImage: () => <div data-testid="cover-image" />,
+}));
+
 vi.mock("@/components/player/SeekBar", () => ({
   SeekBar: () => <div data-testid="seek-bar" />,
 }));
