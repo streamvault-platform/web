@@ -31,7 +31,7 @@ import {
 vi.mock("@/lib/api/library");
 
 const mockArtist = { id: "a1", name: "The Beatles" };
-const mockAlbum = { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: 1969 };
+const mockAlbum = { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: 1969, coverUrl: null };
 const mockTrack = {
   id: "t1", title: "Hey Jude", filePath: "/f.mp3",
   artistId: "a1", artistName: "The Beatles",
@@ -153,7 +153,7 @@ describe("useMyLibrary", () => {
     expect(result.current.tracks[0]).toEqual(mockLibraryTrack);
     expect(result.current.artists).toEqual([{ id: "a1", name: "The Beatles" }]);
     expect(result.current.albums).toEqual([
-      { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: null },
+      { id: "alb1", title: "Abbey Road", artistId: "a1", artistName: "The Beatles", year: null, coverUrl: null },
     ]);
   });
 
