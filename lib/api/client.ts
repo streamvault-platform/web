@@ -50,6 +50,37 @@ function doFetch(serverUrl: string, path: string, options?: RequestInit): Promis
   });
 }
 
+export async function apiUpload<T>(path: string, body: FormData, method = "POST"): Promise<T> {
+  const serverUrl = useSettingsStore.getState().serverUrl;
+  if (!serverUrl) throw new ApiError(0, "Server URL not configured. Go to Settings.");
+  const { accessToken } = useAuthStore.getState();
+
+  const doRequest = () =>
+    fetch(`${serverUrl}/api${path}`, {
+      method,
+      body,
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+
+  let response = await doRequest();
+
+  if (response.status === 401) {
+    if (!refreshing) {
+      refreshing = attemptRefresh(serverUrl).finally(() => { refreshing = null; });
+    }
+    await refreshing;
+    response = await doRequest();
+  }
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => response.statusText);
+    throw new ApiError(response.status, text);
+  }
+
+  if (response.status === 204) return undefined as T;
+  return response.json() as Promise<T>;
+}
+
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const serverUrl = useSettingsStore.getState().serverUrl;
   if (!serverUrl) throw new ApiError(0, "Server URL not configured. Go to Settings.");
