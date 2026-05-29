@@ -18,22 +18,22 @@ const { FileDropzone } = await import("./FileDropzone");
 
 describe("FileDropzone", () => {
   it("renders the drop prompt text", () => {
-    render(<FileDropzone onFiles={() => {}} />);
+    render(<FileDropzone onFiles={() => { }} />);
     expect(screen.getByText("Drop files here or tap to browse")).toBeInTheDocument();
   });
 
   it("renders the supported format hint", () => {
-    render(<FileDropzone onFiles={() => {}} />);
+    render(<FileDropzone onFiles={() => { }} />);
     expect(screen.getByText("MP3, FLAC, OGG, AAC/M4A")).toBeInTheDocument();
   });
 
   it("shows Uploading… when uploading is true", () => {
-    render(<FileDropzone onFiles={() => {}} uploading />);
+    render(<FileDropzone onFiles={() => { }} uploading />);
     expect(screen.getByText("Uploading…")).toBeInTheDocument();
   });
 
   it("shows the drop prompt when uploading is false", () => {
-    render(<FileDropzone onFiles={() => {}} uploading={false} />);
+    render(<FileDropzone onFiles={() => { }} uploading={false} />);
     expect(screen.getByText("Drop files here or tap to browse")).toBeInTheDocument();
   });
 
@@ -81,3 +81,5 @@ describe("FileDropzone", () => {
     });
   });
 });
+
+

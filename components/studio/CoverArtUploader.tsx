@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { CoverImage } from "@/components/library/CoverImage";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useUploadCoverArt } from "@/lib/hooks/studio";
 
 type Props = {
@@ -57,8 +56,7 @@ export function CoverArtUploader({ albumId, currentCoverUrl }: Props) {
             <ActivityIndicator size="small" />
           </View>
         ) : preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} style={{ width: 80, height: 80, borderRadius: 8, objectFit: "cover" }} alt="" />
+              <img src={preview} style={{ width: 80, height: 80, borderRadius: 8, objectFit: "cover" }} alt="" />
         ) : (
           <View style={{ width: 80, height: 80 }}>
             <CoverImage coverUrl={currentCoverUrl} size={80} />

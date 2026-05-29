@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type Props = {

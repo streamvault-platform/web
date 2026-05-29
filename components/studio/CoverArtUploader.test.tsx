@@ -4,10 +4,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
+// Vitest hoists vi.mock() calls before variable declarations. Variables named
+// with the "mock" prefix are accessible inside the factory (Vitest's hoisting
+// transformer allows it). The factory reads mockIsPending at call-time (not at
+// setup-time), so updating the variable before each render controls the state.
+let mockIsPending = false;
 const mockUpload = vi.fn();
 
 vi.mock("@/lib/hooks/studio", () => ({
-  useUploadCoverArt: vi.fn(() => ({ mutate: mockUpload, isPending: false })),
+  useUploadCoverArt: vi.fn(() => ({ mutate: mockUpload, isPending: mockIsPending })),
 }));
 
 vi.mock("@/components/library/CoverImage", () => ({
@@ -27,17 +32,13 @@ vi.mock("@/components/ui/icon-symbol", () => ({
 
 // ─── Dynamic imports ──────────────────────────────────────────────────────────
 
-const { useUploadCoverArt } = await import("@/lib/hooks/studio");
 const { CoverArtUploader } = await import("./CoverArtUploader");
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("CoverArtUploader", () => {
   beforeEach(() => {
-    vi.mocked(useUploadCoverArt).mockReturnValue({
-      mutate: mockUpload,
-      isPending: false,
-    } as ReturnType<typeof useUploadCoverArt>);
+    mockIsPending = false;
     mockUpload.mockReset();
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:preview-url");
   });
@@ -53,10 +54,7 @@ describe("CoverArtUploader", () => {
   });
 
   it('shows "Uploading…" when isPending is true', () => {
-    vi.mocked(useUploadCoverArt).mockReturnValue({
-      mutate: mockUpload,
-      isPending: true,
-    } as ReturnType<typeof useUploadCoverArt>);
+    mockIsPending = true;
     render(<CoverArtUploader albumId="a-1" currentCoverUrl={null} />);
     expect(screen.getByText("Uploading…")).toBeInTheDocument();
   });
