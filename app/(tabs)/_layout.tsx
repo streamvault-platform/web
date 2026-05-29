@@ -1,11 +1,15 @@
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 
 export default function TabsLayout() {
   const isDark = useColorScheme() === "dark";
+  const { role } = useCurrentUser();
+  const isArtistOrAdmin = role === "ARTIST" || role === "ADMIN";
+  const isAdmin = role === "ADMIN";
 
   return (
     <Tabs
@@ -38,6 +42,30 @@ export default function TabsLayout() {
           ),
         }}
       />
+      {isArtistOrAdmin && (
+        <Tabs.Screen
+          name="__studio_link"
+          listeners={{ tabPress: (e) => { e.preventDefault(); router.push("/studio"); } }}
+          options={{
+            title: "Studio",
+            tabBarIcon: ({ color }) => (
+              <IconSymbol name="waveform" size={24} color={color} />
+            ),
+          }}
+        />
+      )}
+      {isAdmin && (
+        <Tabs.Screen
+          name="__admin_link"
+          listeners={{ tabPress: (e) => { e.preventDefault(); router.push("/admin"); } }}
+          options={{
+            title: "Admin",
+            tabBarIcon: ({ color }) => (
+              <IconSymbol name="person.2" size={24} color={color} />
+            ),
+          }}
+        />
+      )}
       <Tabs.Screen
         name="settings"
         options={{
