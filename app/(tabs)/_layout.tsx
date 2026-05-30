@@ -42,30 +42,32 @@ export default function TabsLayout() {
           ),
         }}
       />
-      {isArtistOrAdmin && (
-        <Tabs.Screen
-          name="__studio_link"
-          listeners={{ tabPress: (e) => { e.preventDefault(); router.push("/studio"); } }}
-          options={{
-            title: "Studio",
-            tabBarIcon: ({ color }) => (
-              <IconSymbol name="waveform" size={24} color={color} />
-            ),
-          }}
-        />
-      )}
-      {isAdmin && (
-        <Tabs.Screen
-          name="__admin_link"
-          listeners={{ tabPress: (e) => { e.preventDefault(); router.push("/admin"); } }}
-          options={{
-            title: "Admin",
-            tabBarIcon: ({ color }) => (
-              <IconSymbol name="person.2" size={24} color={color} />
-            ),
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="__studio_link"
+        options={{
+          href: isArtistOrAdmin ? undefined : null,
+          title: "Studio",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="waveform" size={24} color={color} />
+          ),
+          tabBarButton: (props) => (
+            <HapticTab {...props} onPress={() => router.push("/studio")} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="__admin_link"
+        options={{
+          href: isAdmin ? undefined : null,
+          title: "Admin",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="person.2" size={24} color={color} />
+          ),
+          tabBarButton: (props) => (
+            <HapticTab {...props} onPress={() => router.push("/admin")} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="settings"
         options={{
