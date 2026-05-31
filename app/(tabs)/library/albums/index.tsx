@@ -6,7 +6,8 @@ import { AlbumRow } from "@/components/library/AlbumRow";
 import { useAlbums } from "@/lib/hooks/library";
 
 export default function AlbumsScreen() {
-  const { data: albums, isPending, isError } = useAlbums();
+  const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useAlbums();
+  const albums = data?.pages.flat() ?? [];
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["bottom"]}>
@@ -45,6 +46,11 @@ export default function AlbumsScreen() {
               </Text>
             </View>
           }
+          ListFooterComponent={
+            isFetchingNextPage ? <ActivityIndicator className="py-4" /> : null
+          }
+          onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
+          onEndReachedThreshold={0.3}
         />
       )}
     </SafeAreaView>

@@ -10,7 +10,8 @@ import type { Track } from "@/lib/api/library";
 export default function StudioUploadScreen() {
   const insets = useSafeAreaInsets();
   const { mutate: upload, isPending } = useUploadTracks();
-  const { data: tracks = [] } = useTracks();
+  const { data: trackPages } = useTracks();
+  const tracks = trackPages?.pages.flat() ?? [];
   const [lastUploaded, setLastUploaded] = useState<Track[]>([]);
 
   function handleFiles(files: File[]) {

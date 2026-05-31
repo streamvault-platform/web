@@ -45,27 +45,25 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="__studio_link"
         options={{
-          href: isArtistOrAdmin ? undefined : null,
           title: "Studio",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="waveform" size={24} color={color} />
           ),
-          tabBarButton: (props) => (
-            <HapticTab {...props} onPress={() => router.push("/studio")} />
-          ),
+          tabBarButton: isArtistOrAdmin
+            ? (props) => <HapticTab {...props} onPress={() => router.push("/studio")} />
+            : () => null,
         }}
       />
       <Tabs.Screen
         name="__admin_link"
         options={{
-          href: isAdmin ? undefined : null,
           title: "Admin",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="person.2" size={24} color={color} />
           ),
-          tabBarButton: (props) => (
-            <HapticTab {...props} onPress={() => router.push("/admin")} />
-          ),
+          tabBarButton: isAdmin
+            ? (props) => <HapticTab {...props} onPress={() => router.push("/admin")} />
+            : () => null,
         }}
       />
       <Tabs.Screen

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   addToLibrary,
@@ -18,25 +18,46 @@ import {
 import type { Album, Artist } from "@/lib/api/library";
 import { useLibraryStore } from "@/stores/library";
 
+const PAGE_SIZE = 20;
+
 export const useArtists = () =>
-  useQuery({ queryKey: ["artists"], queryFn: () => listArtists() });
+  useInfiniteQuery({
+    queryKey: ["artists"],
+    queryFn: ({ pageParam }) => listArtists(pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length,
+  });
 
 export const useArtist = (id: string) =>
   useQuery({ queryKey: ["artists", id], queryFn: () => getArtist(id), enabled: !!id });
 
 export const useAlbums = (artistId?: string) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: ["albums", { artistId }],
-    queryFn: () => listAlbums(artistId),
+    queryFn: ({ pageParam }) => listAlbums(artistId, pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length,
   });
 
 export const useAlbum = (id: string) =>
   useQuery({ queryKey: ["albums", id], queryFn: () => getAlbum(id), enabled: !!id });
 
-export const useTracks = (albumId?: string) =>
+export const useTracks = () =>
+  useInfiniteQuery({
+    queryKey: ["tracks"],
+    queryFn: ({ pageParam }) => listTracks(undefined, undefined, pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length,
+  });
+
+export const useAlbumTracks = (albumId: string) =>
   useQuery({
     queryKey: ["tracks", { albumId }],
-    queryFn: () => listTracks(albumId),
+    queryFn: () => listTracks(albumId, undefined, 0, 500),
+    enabled: !!albumId,
   });
 
 export const useTracksByArtist = (artistId?: string) =>

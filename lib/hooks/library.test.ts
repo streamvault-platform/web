@@ -19,6 +19,7 @@ import {
 import {
   useAddToLibrary,
   useAlbum,
+  useAlbumTracks,
   useAlbums,
   useArtist,
   useArtists,
@@ -47,7 +48,22 @@ describe("useArtists", () => {
     vi.mocked(listArtists).mockResolvedValue([mockArtist]);
     const { result } = renderHook(() => useArtists(), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual([mockArtist]);
+    expect(result.current.data?.pages.flat()).toEqual([mockArtist]);
+  });
+
+  it("hasNextPage is true when a full page is returned", async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) => ({ ...mockArtist, id: `a${i}` }));
+    vi.mocked(listArtists).mockResolvedValue(fullPage);
+    const { result } = renderHook(() => useArtists(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(true);
+  });
+
+  it("hasNextPage is false when a partial page is returned", async () => {
+    vi.mocked(listArtists).mockResolvedValue([mockArtist]);
+    const { result } = renderHook(() => useArtists(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(false);
   });
 });
 
@@ -71,14 +87,29 @@ describe("useAlbums", () => {
     vi.mocked(listAlbums).mockResolvedValue([mockAlbum]);
     const { result } = renderHook(() => useAlbums(), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(listAlbums).toHaveBeenCalledWith(undefined);
+    expect(listAlbums).toHaveBeenCalledWith(undefined, 0, 20);
   });
 
   it("passes artistId to listAlbums", async () => {
     vi.mocked(listAlbums).mockResolvedValue([mockAlbum]);
     renderHook(() => useAlbums("a1"), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(vi.mocked(listAlbums)).toHaveBeenCalled());
-    expect(listAlbums).toHaveBeenCalledWith("a1");
+    expect(listAlbums).toHaveBeenCalledWith("a1", 0, 20);
+  });
+
+  it("hasNextPage is true when a full page is returned", async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) => ({ ...mockAlbum, id: `alb${i}` }));
+    vi.mocked(listAlbums).mockResolvedValue(fullPage);
+    const { result } = renderHook(() => useAlbums(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(true);
+  });
+
+  it("hasNextPage is false when a partial page is returned", async () => {
+    vi.mocked(listAlbums).mockResolvedValue([mockAlbum]);
+    const { result } = renderHook(() => useAlbums(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(false);
   });
 });
 
@@ -92,11 +123,35 @@ describe("useAlbum", () => {
 });
 
 describe("useTracks", () => {
-  it("passes albumId to listTracks", async () => {
+  it("fetches the first page of all tracks", async () => {
     vi.mocked(listTracks).mockResolvedValue([mockTrack]);
-    renderHook(() => useTracks("alb1"), { wrapper: createQueryWrapper() });
+    renderHook(() => useTracks(), { wrapper: createQueryWrapper() });
     await waitFor(() => expect(vi.mocked(listTracks)).toHaveBeenCalled());
-    expect(listTracks).toHaveBeenCalledWith("alb1");
+    expect(listTracks).toHaveBeenCalledWith(undefined, undefined, 0, 20);
+  });
+
+  it("hasNextPage is true when a full page is returned", async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) => ({ ...mockTrack, id: `t${i}` }));
+    vi.mocked(listTracks).mockResolvedValue(fullPage);
+    const { result } = renderHook(() => useTracks(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(true);
+  });
+
+  it("hasNextPage is false when a partial page is returned", async () => {
+    vi.mocked(listTracks).mockResolvedValue([mockTrack]);
+    const { result } = renderHook(() => useTracks(), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasNextPage).toBe(false);
+  });
+});
+
+describe("useAlbumTracks", () => {
+  it("fetches all tracks for the given album", async () => {
+    vi.mocked(listTracks).mockResolvedValue([mockTrack]);
+    renderHook(() => useAlbumTracks("alb1"), { wrapper: createQueryWrapper() });
+    await waitFor(() => expect(vi.mocked(listTracks)).toHaveBeenCalled());
+    expect(listTracks).toHaveBeenCalledWith("alb1", undefined, 0, 500);
   });
 });
 
