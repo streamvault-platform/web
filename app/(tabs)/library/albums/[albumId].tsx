@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CoverImage } from "@/components/library/CoverImage";
 import { TrackRow } from "@/components/library/TrackRow";
-import { useAlbum, useTracks } from "@/lib/hooks/library";
+import { useAlbum, useAlbumTracks } from "@/lib/hooks/library";
 import { usePlaybackStore } from "@/stores/playback";
 
 export default function AlbumTracksScreen() {
@@ -14,7 +14,7 @@ export default function AlbumTracksScreen() {
   }>();
 
   const { data: album } = useAlbum(albumId);
-  const { data: tracks, isPending, isError } = useTracks(albumId);
+  const { data: tracks = [], isPending, isError } = useAlbumTracks(albumId);
   const { playQueue } = usePlaybackStore();
 
   const title = album?.title ?? albumTitle ?? "Tracks";

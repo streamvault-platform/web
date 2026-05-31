@@ -9,7 +9,8 @@ import type { Album } from "@/lib/api/library";
 
 export default function StudioAlbumsScreen() {
   const insets = useSafeAreaInsets();
-  const { data: albums = [] } = useAlbums();
+  const { data: albumPages } = useAlbums();
+  const albums = albumPages?.pages.flat() ?? [];
   const { mutate: updateMetadata } = useUpdateAlbumMetadata();
   const { mutate: deleteAlbum } = useDeleteAlbum();
   const [editing, setEditing] = useState<string | null>(null);

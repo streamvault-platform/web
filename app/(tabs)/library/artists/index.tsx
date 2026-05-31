@@ -6,7 +6,8 @@ import { ArtistRow } from "@/components/library/ArtistRow";
 import { useArtists } from "@/lib/hooks/library";
 
 export default function ArtistsScreen() {
-  const { data: artists, isPending, isError } = useArtists();
+  const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useArtists();
+  const artists = data?.pages.flat() ?? [];
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={["bottom"]}>
@@ -45,6 +46,11 @@ export default function ArtistsScreen() {
               </Text>
             </View>
           }
+          ListFooterComponent={
+            isFetchingNextPage ? <ActivityIndicator className="py-4" /> : null
+          }
+          onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
+          onEndReachedThreshold={0.3}
         />
       )}
     </SafeAreaView>
