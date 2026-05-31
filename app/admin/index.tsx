@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Stack } from "expo-router";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useCreateUser, useDeleteUser, useUpdateRole, useUsers } from "@/lib/hooks/admin";
 import type { AdminUser, UserRole } from "@/lib/api/admin";
@@ -17,7 +17,6 @@ import type { AdminUser, UserRole } from "@/lib/api/admin";
 const ROLES: UserRole[] = ["USER", "ARTIST", "ADMIN"];
 
 export default function AdminUsersScreen() {
-  const insets = useSafeAreaInsets();
   const isDark = useColorScheme() === "dark";
   const { data: users = [], isPending } = useUsers();
   const { mutate: createUser, isPending: creating } = useCreateUser();
@@ -55,12 +54,8 @@ export default function AdminUsersScreen() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }} className="bg-background dark:bg-background-dark">
-      <View className="px-4 pt-6 pb-4">
-        <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark">
-          User Management
-        </Text>
-      </View>
+    <View style={{ flex: 1 }} className="bg-background dark:bg-background-dark">
+      <Stack.Screen options={{ title: "Admin" }} />
 
       {/* Create user form */}
       <View className="px-4 mb-6">

@@ -31,6 +31,9 @@ const MAPPING = {
   'checkmark.circle.fill': 'check-circle',
   'arrow.down.circle': 'file-download',
   'arrow.down.circle.fill': 'downloading',
+  'arrow.up.circle': 'file-upload',
+  'waveform': 'graphic-eq',
+  'person.2': 'group',
 } as IconMapping;
 
 /**

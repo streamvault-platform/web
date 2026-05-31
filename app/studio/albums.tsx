@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert, FlatList, Platform, Pressable, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Stack } from "expo-router";
 import { CoverArtUploader } from "@/components/studio/CoverArtUploader";
 import { MetadataForm } from "@/components/studio/MetadataForm";
 import { useAlbums } from "@/lib/hooks/library";
@@ -8,7 +8,6 @@ import { useDeleteAlbum, useUpdateAlbumMetadata } from "@/lib/hooks/studio";
 import type { Album } from "@/lib/api/library";
 
 export default function StudioAlbumsScreen() {
-  const insets = useSafeAreaInsets();
   const { data: albumPages } = useAlbums();
   const albums = albumPages?.pages.flat() ?? [];
   const { mutate: updateMetadata } = useUpdateAlbumMetadata();
@@ -54,13 +53,8 @@ export default function StudioAlbumsScreen() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }} className="bg-background dark:bg-background-dark">
-      <View className="px-4 pt-6 pb-4">
-        <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark">
-          Manage Albums
-        </Text>
-      </View>
-
+    <View style={{ flex: 1 }} className="bg-background dark:bg-background-dark">
+      <Stack.Screen options={{ title: "Manage Albums" }} />
       <FlatList
         data={albums}
         keyExtractor={(a) => a.id}

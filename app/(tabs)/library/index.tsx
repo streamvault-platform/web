@@ -3,7 +3,9 @@ import { router, Stack } from "expo-router";
 import { Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useMyLibrary } from "@/lib/hooks/library";
+import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { usePlaylists } from "@/lib/hooks/playlists";
 import { useDownloadsStore } from "@/stores/downloads";
 
@@ -54,15 +56,30 @@ export default function LibraryScreen() {
   const { data: playlists = [] } = usePlaylists();
   const { downloaded } = useDownloadsStore();
   const downloadCount = Object.keys(downloaded).length;
+  const { role } = useCurrentUser();
+  const isArtistOrAdmin = role === "ARTIST" || role === "ADMIN";
+  const isAdmin = role === "ADMIN";
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
       <Stack.Screen options={{ headerShown: false, headerBackTitle: "Home" }} />
 
       <View className="px-4 pt-4 pb-4">
-        <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark mb-4">
-          Library
-        </Text>
+        <View className="flex-row items-center mb-4">
+          <Text className="flex-1 text-2xl font-bold text-foreground dark:text-foreground-dark">
+            Library
+          </Text>
+          {isArtistOrAdmin && (
+            <Pressable onPress={() => router.push("/studio")} className="p-2 active:opacity-60">
+              <IconSymbol name="waveform" size={22} color="#6366f1" />
+            </Pressable>
+          )}
+          {isAdmin && (
+            <Pressable onPress={() => router.push("/admin")} className="p-2 active:opacity-60">
+              <IconSymbol name="person.2" size={22} color="#6366f1" />
+            </Pressable>
+          )}
+        </View>
 
         <Pressable
           onPress={() => router.push("/library/search")}

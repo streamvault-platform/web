@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Stack } from "expo-router";
 import { FileDropzone } from "@/components/studio/FileDropzone";
 import { useUploadTracks } from "@/lib/hooks/studio";
 import { useTracks } from "@/lib/hooks/library";
@@ -8,7 +8,6 @@ import { TrackRow } from "@/components/library/TrackRow";
 import type { Track } from "@/lib/api/library";
 
 export default function StudioUploadScreen() {
-  const insets = useSafeAreaInsets();
   const { mutate: upload, isPending } = useUploadTracks();
   const { data: trackPages } = useTracks();
   const tracks = trackPages?.pages.flat() ?? [];
@@ -21,12 +20,8 @@ export default function StudioUploadScreen() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }} className="bg-background dark:bg-background-dark">
-      <View className="px-4 pt-6 pb-4">
-        <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark">
-          Upload Tracks
-        </Text>
-      </View>
+    <View style={{ flex: 1 }} className="bg-background dark:bg-background-dark">
+      <Stack.Screen options={{ title: "Studio" }} />
 
       <View className="px-4 mb-6">
         <FileDropzone onFiles={handleFiles} uploading={isPending} />
