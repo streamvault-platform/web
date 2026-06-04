@@ -7,6 +7,7 @@ export type TokenResponse = {
 
 export type SetupStatus = {
   configured: boolean;
+  openRegistrationEnabled: boolean;
 };
 
 // Separate error class so callers can distinguish auth errors from other ApiErrors
@@ -37,6 +38,22 @@ export async function createAdmin(
   password: string,
 ): Promise<TokenResponse> {
   return authPost(serverUrl, "/auth/register", { username, password });
+}
+
+export async function register(
+  serverUrl: string,
+  username: string,
+  password: string,
+  inviteToken?: string,
+): Promise<TokenResponse> {
+  return authPost(serverUrl, "/auth/register", { username, password, inviteToken: inviteToken ?? null });
+}
+
+export async function checkInvite(serverUrl: string, inviteToken: string): Promise<boolean> {
+  const response = await fetch(`${serverUrl}/api/auth/invite?invite=${encodeURIComponent(inviteToken)}`);
+  if (!response.ok) throw new AuthApiError(response.status, "Failed to check invite");
+  const data = await response.json() as { valid: boolean };
+  return data.valid;
 }
 
 export async function login(
