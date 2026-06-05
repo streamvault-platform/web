@@ -12,13 +12,20 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AuthApiError, createAdmin, fetchSetupStatus, login } from "@/lib/api/auth";
+import { AuthApiError, createAdmin, fetchSetupStatus, login, type SetupStatus } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth";
 import { BUILT_IN_SERVER_URL, isServerUrlLocked, useSettingsStore } from "@/stores/settings";
 
 type Step =
   | { kind: "url" }
+  | { kind: "choose"; serverUrl: string }
   | { kind: "credentials"; mode: "create-admin" | "login"; serverUrl: string };
+
+function resolveStep(status: SetupStatus, serverUrl: string): Step {
+  if (!status.configured) return { kind: "credentials", mode: "create-admin", serverUrl };
+  if (status.openRegistrationEnabled) return { kind: "choose", serverUrl };
+  return { kind: "credentials", mode: "login", serverUrl };
+}
 
 export default function SetupScreen() {
   const { serverUrl: savedUrl, setServerUrl } = useSettingsStore();
@@ -36,13 +43,7 @@ export default function SetupScreen() {
     if (!isServerUrlLocked) return;
     setLoading(true);
     fetchSetupStatus(BUILT_IN_SERVER_URL)
-      .then((status) =>
-        setStep({
-          kind: "credentials",
-          mode: status.configured ? "login" : "create-admin",
-          serverUrl: BUILT_IN_SERVER_URL,
-        })
-      )
+      .then((status) => setStep(resolveStep(status, BUILT_IN_SERVER_URL)))
       .catch(() => setError("Could not connect to server."))
       .finally(() => setLoading(false));
   }, []);
@@ -64,11 +65,7 @@ export default function SetupScreen() {
     for (const candidate of candidates) {
       try {
         const status = await fetchSetupStatus(candidate);
-        setStep({
-          kind: "credentials",
-          mode: status.configured ? "login" : "create-admin",
-          serverUrl: candidate,
-        });
+        setStep(resolveStep(status, candidate));
         setLoading(false);
         return;
       } catch {
@@ -108,6 +105,20 @@ export default function SetupScreen() {
     }
   }
 
+  function BackLink({ serverUrl }: { serverUrl: string }) {
+    if (isServerUrlLocked) return null;
+    return (
+      <Pressable
+        onPress={() => { setStep({ kind: "url" }); setError(null); }}
+        className="mb-6"
+      >
+        <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
+          ← {serverUrl}
+        </Text>
+      </Pressable>
+    );
+  }
+
   return (
     <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }} className="bg-background dark:bg-background-dark">
       <KeyboardAvoidingView
@@ -125,7 +136,7 @@ export default function SetupScreen() {
             </Text>
           </View>
 
-          {step.kind === "url" ? (
+          {step.kind === "url" && (
             <>
               <Text className="text-xl font-semibold text-foreground dark:text-foreground-dark mb-1">
                 Connect to your server
@@ -149,18 +160,41 @@ export default function SetupScreen() {
                 Connect
               </Button>
             </>
-          ) : (
+          )}
+
+          {step.kind === "choose" && (
             <>
-              {!isServerUrlLocked && (
-                <Pressable
-                  onPress={() => { setStep({ kind: "url" }); setError(null); }}
-                  className="mb-6"
-                >
-                  <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
-                    ← {step.serverUrl}
-                  </Text>
-                </Pressable>
-              )}
+              <BackLink serverUrl={step.serverUrl} />
+              <Text className="text-xl font-semibold text-foreground dark:text-foreground-dark mb-1">
+                Welcome
+              </Text>
+              <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark mb-8">
+                Sign in to an existing account or create a new one
+              </Text>
+
+              <Button
+                onPress={() => setStep({ kind: "credentials", mode: "login", serverUrl: step.serverUrl })}
+                loading={false}
+              >
+                Sign in
+              </Button>
+              <Pressable
+                onPress={() => {
+                  setServerUrl(step.serverUrl);
+                  router.push("/(auth)/register");
+                }}
+                className="mt-3 py-3.5 items-center rounded-lg border border-border dark:border-border-dark active:opacity-75"
+              >
+                <Text className="text-foreground dark:text-foreground-dark font-semibold text-base">
+                  Create account
+                </Text>
+              </Pressable>
+            </>
+          )}
+
+          {step.kind === "credentials" && (
+            <>
+              <BackLink serverUrl={step.serverUrl} />
 
               <Text className="text-xl font-semibold text-foreground dark:text-foreground-dark mb-1">
                 {step.mode === "create-admin" ? "Create admin account" : "Sign in"}
@@ -189,6 +223,21 @@ export default function SetupScreen() {
               <Button onPress={handleSubmit} loading={loading}>
                 {step.mode === "create-admin" ? "Create account" : "Sign in"}
               </Button>
+
+              {step.mode === "login" && (
+                <Pressable
+                  onPress={() => {
+                    setServerUrl(step.serverUrl);
+                    router.push("/(auth)/register");
+                  }}
+                  className="mt-4 items-center"
+                >
+                  <Text className="text-sm text-foreground-muted dark:text-foreground-muted-dark">
+                    Have an invite link?{" "}
+                    <Text className="text-primary dark:text-primary-dark">Create account</Text>
+                  </Text>
+                </Pressable>
+              )}
             </>
           )}
         </View>
