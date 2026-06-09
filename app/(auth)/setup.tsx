@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthApiError, createAdmin, fetchSetupStatus, login, type SetupStatus } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth";
 import { BUILT_IN_SERVER_URL, isServerUrlLocked, useSettingsStore } from "@/stores/settings";
+import { useWatchSyncStore } from "@/stores/watchSync";
 
 type Step =
   | { kind: "url" }
@@ -30,6 +31,7 @@ function resolveStep(status: SetupStatus, serverUrl: string): Step {
 export default function SetupScreen() {
   const { serverUrl: savedUrl, setServerUrl } = useSettingsStore();
   const { setTokens } = useAuthStore();
+  const { sendConfig: sendToWatch } = useWatchSyncStore();
   const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState<Step>({ kind: "url" });
@@ -91,6 +93,7 @@ export default function SetupScreen() {
           : await login(step.serverUrl, username, password);
       setServerUrl(step.serverUrl);
       await setTokens(tokens.accessToken, tokens.refreshToken);
+      sendToWatch({ serverUrl: step.serverUrl, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken }).catch(() => {});
       router.replace("/(tabs)/library");
     } catch (e) {
       if (e instanceof AuthApiError) {
