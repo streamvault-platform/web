@@ -34,6 +34,7 @@ const MAPPING = {
   'arrow.up.circle': 'file-upload',
   'waveform': 'graphic-eq',
   'person.2': 'group',
+  'applewatch': 'watch',
 } as IconMapping;
 
 /**

@@ -22,6 +22,12 @@ vi.mock("@/lib/hooks/playlists", () => ({
   useRemoveTrackFromPlaylist: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
+vi.mock("@/lib/hooks/watchSync", () => ({
+  useSyncToWatch: vi.fn(() => ({ mutate: vi.fn() })),
+  useTrackSyncStatus: vi.fn(() => ({ isSynced: false, isSyncing: false })),
+  useAlbumSyncStatus: vi.fn(() => ({ isSynced: false, isSyncing: false })),
+}));
+
 vi.mock("@/hooks/use-online", () => ({
   useIsOnline: vi.fn(() => true),
 }));

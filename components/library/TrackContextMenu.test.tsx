@@ -39,6 +39,12 @@ vi.mock("@/lib/hooks/playlists", () => ({
   useRemoveTrackFromPlaylist: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
+vi.mock("@/lib/hooks/watchSync", () => ({
+  useSyncToWatch: vi.fn(() => ({ mutate: vi.fn() })),
+  useTrackSyncStatus: vi.fn(() => ({ isSynced: false, isSyncing: false })),
+  useAlbumSyncStatus: vi.fn(() => ({ isSynced: false, isSyncing: false })),
+}));
+
 vi.mock("@/components/ui/icon-symbol", () => ({
   IconSymbol: ({ name }: { name: string }) => <div data-testid={`icon-${name}`}>{name}</div>,
 }));

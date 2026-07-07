@@ -6,6 +6,7 @@ import { useDownloadsStore } from "@/stores/downloads";
 import { useQueueStore } from "@/stores/queue";
 import { useMyLibrary, useAddToLibrary, useRemoveFromLibrary } from "@/lib/hooks/library";
 import { usePlaylists, useAddTrackToPlaylist, useRemoveTrackFromPlaylist } from "@/lib/hooks/playlists";
+import { useSyncToWatch, useTrackSyncStatus } from "@/lib/hooks/watchSync";
 import type { Track } from "@/lib/api/library";
 
 type Props = { track: Track; playlistId?: string };
@@ -21,6 +22,8 @@ export function TrackContextMenu({ track, playlistId }: Props) {
   const { data: playlists = [] } = usePlaylists();
   const addTrackToPlaylist = useAddTrackToPlaylist();
   const removeTrackFromPlaylist = useRemoveTrackFromPlaylist();
+  const syncToWatch = useSyncToWatch();
+  const { isSynced, isSyncing } = useTrackSyncStatus(track.id);
 
   const isDownloaded = !!downloaded[track.id];
   const isPending = !!pending[track.id];
@@ -32,6 +35,7 @@ export function TrackContextMenu({ track, playlistId }: Props) {
     ? "Remove Download"
     : "Download";
   const libraryLabel = inLibrary ? "Remove from Library" : "Add to Library";
+  const watchSyncLabel = isSyncing ? "Syncing to Watch…" : isSynced ? "Synced to Watch" : "Sync to Watch";
 
   function handlePlayNext() {
     playNext(track);
@@ -76,10 +80,15 @@ export function TrackContextMenu({ track, playlistId }: Props) {
     setVisible(false);
   }
 
+  function handleWatchSync() {
+    if (!isSyncing) syncToWatch.mutate([track.id]);
+    setVisible(false);
+  }
+
   function open() {
     if (Platform.OS === "ios") {
       const playlistLabel = playlistId ? "Remove from Playlist" : "Add to Playlist";
-      const options = ["Cancel", "Play Next", "Add to Queue", libraryLabel, playlistLabel, downloadLabel];
+      const options = ["Cancel", "Play Next", "Add to Queue", libraryLabel, playlistLabel, downloadLabel, watchSyncLabel];
       ActionSheetIOS.showActionSheetWithOptions(
         { options, cancelButtonIndex: 0, destructiveButtonIndex: playlistId ? 4 : undefined },
         (i) => {
@@ -88,6 +97,7 @@ export function TrackContextMenu({ track, playlistId }: Props) {
           else if (i === 3) handleLibrary();
           else if (i === 4) { if (playlistId) handleRemoveFromPlaylist(); else setPlaylistPickerVisible(true); }
           else if (i === 5) handleDownload();
+          else if (i === 6) handleWatchSync();
         }
       );
     } else {

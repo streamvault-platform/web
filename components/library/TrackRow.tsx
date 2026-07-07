@@ -5,6 +5,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { TrackContextMenu } from "@/components/library/TrackContextMenu";
 import { useDownloadsStore } from "@/stores/downloads";
 import { useIsOnline } from "@/hooks/use-online";
+import { useTrackSyncStatus } from "@/lib/hooks/watchSync";
 import { formatDuration } from "@/lib/utils/format";
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
 export function TrackRow({ track, onPress }: Props) {
   const { downloaded, pending } = useDownloadsStore();
   const isOnline = useIsOnline();
+  const { isSynced, isSyncing } = useTrackSyncStatus(track.id);
   const isDownloaded = Platform.OS !== "web" && !!downloaded[track.id];
   const isPending = Platform.OS !== "web" && !!pending[track.id];
   const isPlayable = isOnline || isDownloaded;
@@ -50,6 +52,12 @@ export function TrackRow({ track, onPress }: Props) {
           color="#6366f1"
           style={{ marginLeft: 8 }}
         />
+      ) : null}
+
+      {Platform.OS === "ios" && isSyncing ? (
+        <ActivityIndicator size="small" color="#71717a" style={{ marginLeft: 8 }} />
+      ) : Platform.OS === "ios" && isSynced ? (
+        <IconSymbol name="applewatch" size={16} color="#71717a" style={{ marginLeft: 8 }} />
       ) : null}
 
       <TrackContextMenu track={track} />
